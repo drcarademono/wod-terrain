@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: ceefd1d950994e0a291bd1aa1496d619
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - _terrainMesh: {instanceID: 0}
+  - heightmapParams: {fileID: 11400000, guid: 9f1fe89392a7fe574a8762cb50f80bac, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
