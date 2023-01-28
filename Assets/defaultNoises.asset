@@ -1,0 +1,149 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ed4b9d85321a31f18975d5c104c2a3c, type: 3}
+  m_Name: defaultNoises
+  m_EditorClassIdentifier: 
+  swissFolded:
+    name: swissFolded
+    octaves: 16
+    frequency: 0.0005
+    amplitude: 0.9
+    lacunarity: 2
+    persistence: 0.5
+    offset: {x: 0.45, y: 0}
+    ridgeOffset: 1
+    warp: 41.64
+    maxHeight: 3131
+  jordanFolded:
+    name: jordanFolded
+    octaves: 12
+    frequency: 0.001
+    amplitude: 1
+    lacunarity: 2
+    persistence: 0.5
+    persistence1: 1
+    offset: {x: 5000, y: 5000}
+    warp0: 100
+    warp: -200
+    damp0: 1
+    damp: 0.3
+    damp_scale: 1
+    maxHeight: 1548
+  perlinTile:
+    name: perlinTile
+    octaves: 6
+    frequency: 0.0008
+    amplitude: 0.59
+    lacunarity: 1.37
+    persistence: 0.61
+    offset: {x: 0, y: 0}
+    maxHeight: 1000
+  perlinBump:
+    name: perlinBump
+    octaves: 5
+    frequency: 0.08
+    amplitude: 0.86
+    lacunarity: 3
+    persistence: 0.4
+    offset: {x: 0, y: 0}
+    maxHeight: 2.5
+  iqMountain:
+    name: iqMountain
+    octaves: 16
+    frequency: 0.0008
+    amplitude: 1
+    lacunarity: 2
+    persistence: 0.5
+    offset: {x: 0, y: 0}
+    ridgeOffset: 0
+    warp: 1.15
+    maxHeight: 3224
+  swissCell:
+    name: swissCell
+    octaves: 15
+    frequency: 0.005
+    amplitude: 1
+    lacunarity: 2
+    persistence: 0.5
+    offset: {x: 0, y: 0}
+    ridgeOffset: 0.5
+    warp: 8.1
+    maxHeight: 252
+  swissFaults:
+    name: swissFaults
+    octaves: 12
+    frequency: 0.002
+    amplitude: 3.24
+    lacunarity: 2
+    persistence: 0.5
+    offset: {x: 1500, y: 1000}
+    ridgeOffset: 1
+    warp: 156.85
+    maxHeight: 5000
+  perlinDune:
+    name: perlinDune
+    octaves: 4
+    frequency: 0.0015
+    amplitude: 0.59
+    lacunarity: 1.39
+    persistence: 0.61
+    offset: {x: 1000, y: 0}
+    maxHeight: 40
+  swissDune:
+    name: swissDune
+    octaves: 3
+    frequency: 0.01
+    amplitude: 1.03
+    lacunarity: 1.22
+    persistence: 0.25
+    offset: {x: -500, y: 400}
+    ridgeOffset: 0.7
+    warp: 23.09
+    maxHeight: 60
+  mntVar:
+    name: mntVar
+    octaves: 4
+    frequency: 0.0001
+    amplitude: 16.29
+    lacunarity: 1.21
+    persistence: 1.18
+    offset: {x: 0, y: 0}
+    maxHeight: 1000
+  colorVar:
+    name: colorVar
+    octaves: 4
+    frequency: 0.02
+    amplitude: 1
+    lacunarity: 2
+    persistence: 0.5
+    offset: {x: 0, y: 0}
+    maxHeight: 0
+  mountainBase:
+    name: mountainBase
+    octaves: 2
+    frequency: 0.0001
+    amplitude: 1.54
+    lacunarity: 1.37
+    persistence: 0.5
+    offset: {x: 0, y: 0}
+    ridgeOffset: 0.533
+    warp: 0
+    maxHeight: 5000
+  hillBase:
+    name: hillBase
+    octaves: 6
+    frequency: 0.0001
+    amplitude: 0.79
+    lacunarity: 1.79
+    persistence: 0.38
+    offset: {x: 0, y: 0}
+    maxHeight: 5000

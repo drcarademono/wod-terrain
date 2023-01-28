@@ -1,0 +1,53 @@
+{
+    "ModTitle": "Interesting Eroded Terrains",
+    "ModVersion": "1.3",
+    "ModAuthor": "monobelisk & Freak2121",
+    "DFUnity_Version": "0.13.1",
+    "ModDescription": "Adds generated natural looking mountains, hills, canyons and dunes to the original terrain.",
+    "GUID": "45339f97-bcef-437c-a270-363a70993dc5",
+    "Files": [
+        "Assets/Game/Mods/InterestingErodedTerrains/modsettings.json",
+        "Assets/Game/Mods/InterestingErodedTerrains/interestingerodedterrains.dfmod.json",
+        "Assets/Game/Mods/InterestingErodedTerrains/Assets/interesting_terrains.txt",
+        "Assets/Game/Mods/InterestingErodedTerrains/Assets/Maps/daggerfall_deriv_map.psd",
+        "Assets/Game/Mods/InterestingErodedTerrains/Assets/Maps/daggerfall_heightmap.png",
+        "Assets/Game/Mods/InterestingErodedTerrains/Assets/Maps/tileable_noise.png",
+        "Assets/Game/Mods/InterestingErodedTerrains/Assets/Shaders/MainHeightmapSmoother.compute",
+        "Assets/Game/Mods/InterestingErodedTerrains/Assets/Shaders/heightSampling.cginc",
+        "Assets/Game/Mods/InterestingErodedTerrains/Assets/Shaders/noises.cginc",
+        "Assets/Game/Mods/InterestingErodedTerrains/Assets/Shaders/noiseParams.cginc",
+        "Assets/Game/Mods/InterestingErodedTerrains/Assets/Shaders/MainHeightmapComputer.compute",
+        "Assets/Game/Mods/InterestingErodedTerrains/Assets/Shaders/basicRoads.cginc",
+        "Assets/Game/Mods/InterestingErodedTerrains/Assets/Shaders/TerrainComputer.compute",
+        "Assets/Game/Mods/InterestingErodedTerrains/Scripts/InterestingTerrainTexturer.cs",
+        "Assets/Game/Mods/InterestingErodedTerrains/Scripts/Utility.cs",
+        "Assets/Game/Mods/InterestingErodedTerrains/Scripts/InterestingTerrains.cs",
+        "Assets/Game/Mods/InterestingErodedTerrains/Scripts/InterestingTerrainSampler.cs",
+        "Assets/Game/Mods/InterestingErodedTerrains/Scripts/ModMessageHandler.cs",
+        "Assets/Game/Mods/InterestingErodedTerrains/Scripts/Compatibility/BasicRoadsUtils.cs",
+        "Assets/Game/Mods/InterestingErodedTerrains/Scripts/Compatibility/CompatibilityUtils.cs",
+        "Assets/Game/Mods/InterestingErodedTerrains/Scripts/Constants/Constants.cs",
+        "Assets/Game/Mods/InterestingErodedTerrains/Scripts/Enums/HeightmapResolution.cs",
+        "Assets/Game/Mods/InterestingErodedTerrains/Scripts/Helpers/BufferIO.cs",
+        "Assets/Game/Mods/InterestingErodedTerrains/Scripts/Helpers/TileDataCache.cs",
+        "Assets/Game/Mods/InterestingErodedTerrains/Scripts/Helpers/ConsoleHandler.cs",
+        "Assets/Game/Mods/InterestingErodedTerrains/Scripts/IniParser/IniUtils.cs",
+        "Assets/Game/Mods/InterestingErodedTerrains/Scripts/IniParser/IniSerializable.cs",
+        "Assets/Game/Mods/InterestingErodedTerrains/Scripts/Models/TerrainComputer.cs",
+        "Assets/Game/Mods/InterestingErodedTerrains/Scripts/Models/NoiseParams.cs",
+        "Assets/Game/Mods/InterestingErodedTerrains/Scripts/Models/TerrainComputerParams.cs",
+        "Assets/Game/Mods/InterestingErodedTerrains/Scripts/Models/HeightmapBufferCollection.cs",
+        "Assets/Game/Mods/InterestingErodedTerrains/Scripts/Models/Settings.cs",
+        "Assets/Game/Mods/InterestingErodedTerrains/Scripts/Models/Noise Params/JordanTurbulence.cs",
+        "Assets/Game/Mods/InterestingErodedTerrains/Scripts/Models/Noise Params/Perlin.cs",
+        "Assets/Game/Mods/InterestingErodedTerrains/Scripts/Models/Noise Params/SwissTurbulence.cs"
+    ],
+    "Dependencies": [
+        {
+            "Name": "basicroads",
+            "IsOptional": true,
+            "IsPeer": false,
+            "Version": "1.0.0"
+        }
+    ]
+}

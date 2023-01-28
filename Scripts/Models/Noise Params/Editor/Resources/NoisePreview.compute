@@ -1,0 +1,209 @@
+#pragma kernel perlinTile
+#pragma kernel perlinBump
+#pragma kernel swissFolded
+#pragma kernel jordanFolded
+#pragma kernel iqMountain
+#pragma kernel swissCell
+#pragma kernel swissFaults
+#pragma kernel perlinDune
+#pragma kernel swissDune
+#pragma kernel mntVar
+#pragma kernel colorVar
+#pragma kernel mountainBase
+#pragma kernel hillBase
+
+float originalHeight, newHeight;
+float2 terrainPosition, terrainSize, worldSize;
+int heightmapResolution;
+float4 prevWeights;
+RWTexture2D<float4> Result;
+
+#include "../../../../../Assets/Shaders/noises.cginc"
+#include "../../../../../Assets/Shaders/noiseParams.cginc"
+
+[numthreads(8, 8, 1)]
+void perlinTile(uint3 id : SV_DispatchThreadID)
+{
+    float2 uv = float2(id.xy) / heightmapResolution;
+    float2 pos = terrainPosition + terrainSize * uv;
+
+    PerlinParams p = PerlinTile(pos);
+    float height = SimplePerlin(p) * (newHeight / perlinTile_maxHeight);
+
+    Result[id.xy] = float4(height, height, height, 1);
+}
+
+[numthreads(8, 8, 1)]
+void perlinBump(uint3 id : SV_DispatchThreadID)
+{
+    float2 uv = float2(id.xy) / heightmapResolution;
+    float2 pos = terrainPosition + terrainSize * uv;
+
+    PerlinParams p = PerlinBump(pos);
+    float height = SimplePerlin(p) * (newHeight / perlinBump_maxHeight);
+    height = height * 0.5 + 0.5;
+
+    Result[id.xy] = float4(height, height, height, 1);
+}
+
+[numthreads(8,8,1)]
+void swissFolded (uint3 id : SV_DispatchThreadID)
+{
+    float2 uv = float2(id.xy) / heightmapResolution;
+    float2 pos = float2(int2(terrainPosition + terrainSize * uv));
+
+    SwissParams p = SwissFolded(pos);
+    float height = SwissMountains(p) * (newHeight / swissFolded_maxHeight);
+    float3 c = float3(0, saturate(height), 0);
+    if (height < 0) {
+        c.r = abs(height);
+    }
+
+    Result[id.xy] = float4(height.xxx * 0.5, 1);
+}
+
+[numthreads(8, 8, 1)]
+void mountainBase(uint3 id : SV_DispatchThreadID)
+{
+    float2 uv = float2(id.xy) / heightmapResolution;
+    float2 pos = float2(int2(terrainPosition + terrainSize * uv));
+
+    SwissParams p = MountainBase(pos);
+    float height = MountainBaseNoise(p) * (newHeight / mountainBase_maxHeight);
+    /*height = saturate(pow(height, 5));
+    height = smoothstep(0.2, 0.8, height);*/
+    //height = saturate(lerp(0.5, height, 1.4));
+
+    Result[id.xy] = float4(height.xxx, 1);
+}
+
+[numthreads(8, 8, 1)]
+void hillBase(uint3 id : SV_DispatchThreadID)
+{
+    float2 uv = float2(id.xy) / heightmapResolution;
+    float2 pos = terrainPosition + terrainSize * uv;
+
+    PerlinParams p = HillBase(pos);
+    float height = SimplePerlin(p) * (newHeight / hillBase_maxHeight);
+    height = height * 0.5 + 0.5;
+    height = pow(height, 3);
+
+    Result[id.xy] = float4(height, height, height, 1);
+}
+
+[numthreads(8, 8, 1)]
+void swissFaults(uint3 id : SV_DispatchThreadID)
+{
+    float2 uv = float2(id.xy) / heightmapResolution;
+    float2 pos = float2(int2(terrainPosition + terrainSize * uv));
+
+    SwissParams p = SwissFaults(pos);
+    float height = SwissTime(p) * (newHeight / swissFaults_maxHeight);
+    /*p = SwissFaults(pos);
+    p.frequency *= 2;
+    p.warp /= 2;
+    p.offset = float2(0, 0);
+    height += SwissTime(p) * (newHeight / swissFaults_maxHeight);
+    height *= 0.5;*/
+
+    Result[id.xy] = float4(height, height, height, 1);
+}
+
+[numthreads(8, 8, 1)]
+void jordanFolded(uint3 id : SV_DispatchThreadID)
+{
+    float2 uv = float2(id.xy) / heightmapResolution;
+    float2 pos = terrainPosition + terrainSize * uv;
+
+    JordanParams p = JordanFolded(pos);
+    float height = JordanMountains(p) * (newHeight / jordanFolded_maxHeight);
+
+    Result[id.xy] = float4(height, height, height, 1);
+}
+
+[numthreads(8, 8, 1)]
+void iqMountain(uint3 id : SV_DispatchThreadID)
+{
+    float2 uv = float2(id.xy) / heightmapResolution;
+    float2 pos = terrainPosition + terrainSize * uv;
+
+    SwissParams p = IQMountain(pos);
+    float height = IQMountains(p) * (newHeight / iqMountain_maxHeight);
+
+    Result[id.xy] = float4(height, height, height, 1);
+}
+
+[numthreads(8, 8, 1)]
+void swissCell(uint3 id : SV_DispatchThreadID)
+{
+    float2 uv = float2(id.xy) / heightmapResolution;
+    float2 pos = terrainPosition + terrainSize * uv;
+
+    SwissParams p = SwissCell(round(pos));
+    float height = SwissCellNoise(p) * (newHeight / swissCell_maxHeight);
+
+    Result[id.xy] = float4(height, height, height, 1);
+}
+
+[numthreads(8, 8, 1)]
+void perlinDune(uint3 id : SV_DispatchThreadID)
+{
+    float2 uv = float2(id.xy) / heightmapResolution;
+    float2 pos = terrainPosition + terrainSize * uv;
+
+    PerlinParams p = PerlinDune(pos);
+    float height = PositivePerlin(p) * (newHeight / perlinDune_maxHeight);
+
+    Result[id.xy] = float4(height, height, height, 1);
+}
+
+[numthreads(8, 8, 1)]
+void swissDune(uint3 id : SV_DispatchThreadID)
+{
+    float2 uv = float2(id.xy) / heightmapResolution;
+    float2 pos = terrainPosition + terrainSize * uv;
+
+    SwissParams p = SwissDune(pos);
+    float height = SwissMountainsGen(p) * (newHeight / swissDune_maxHeight);
+
+    Result[id.xy] = float4(height, height, height, 1);
+}
+
+[numthreads(8, 8, 1)]
+void mntVar(uint3 id : SV_DispatchThreadID)
+{
+    float2 uv = float2(id.xy) / heightmapResolution;
+    float2 pos = terrainPosition + terrainSize * uv;
+
+    PerlinParams p = MountainVar(pos);
+    p.maxHeight = newHeight;
+    float height = SimplePerlin(p) * 0.5 + 0.5;
+
+    Result[id.xy] = float4(height, height, height, 1);
+}
+
+[numthreads(8, 8, 1)]
+void colorVar(uint3 id : SV_DispatchThreadID)
+{
+    float2 uv = float2(id.xy) / heightmapResolution;
+    float2 pos = terrainPosition + terrainSize * uv;
+
+    PerlinParams p = ColorVar(pos);
+    float4 res = ColorPerlin(p);
+
+    float4 w = prevWeights;
+    res.a = lerp(1, res.a, prevWeights.a);
+    w.a = 1.0;
+
+    float av = res.g * res.b * (res.a * 0.4 + 0.6);
+    av = saturate(av * 2);
+    //av = av > 0.5 ? 1 : 0;
+
+    Result[id.xy] = res * w;
+
+    /*float3 psd = PerlinSurflet2D_Deriv(pos * colorVar_frequency) * 0.5 + 0.5;
+    psd.b = 0.5;
+    psd = normalize(psd);
+    Result[id.xy] = float4(psd, 1);*/
+    //Result[id.xy] = float4(av, av, av, 1);
+}

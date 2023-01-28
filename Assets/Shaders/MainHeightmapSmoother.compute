@@ -1,0 +1,46 @@
+#pragma kernel CSMain
+
+Texture2D<float4> BaseHeightmap;
+RWTexture2D<float4> SmoothedHeightmap;
+
+SamplerState bh_linear_clamp_sampler;
+
+[numthreads(10, 5, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    float sum = 0.0;
+    float centerVal = 0.0;
+    float highestVal = 0.0;
+    float lowestVal = 1.0;
+
+    for (int x = -1; x <= 1; x++) {
+        for (int y = -1; y <= 1; y++) {
+            int2 coords = clamp(int2(id.x + x, id.y + y), int2(0, 0), int2(999, 499));
+            bool isCenter = (x == 0 && y == 0);
+
+            float val = BaseHeightmap[coords];
+
+            if (val > highestVal) {
+                highestVal = val;
+            }
+            if (val < lowestVal) {
+                lowestVal = val;
+            }
+
+            if (isCenter) {
+                centerVal = val;
+            }
+            else {
+                sum += val;
+            }
+        }
+    }
+
+    float blurredVal = saturate(sum / 8.0);
+    float distBelowHighest = max(0, highestVal - centerVal);
+    float thres = 3.0 / 5000.0;
+    float blurWeight = saturate(distBelowHighest / thres);
+    blurWeight = saturate((highestVal - lowestVal) / thres);
+
+    SmoothedHeightmap[id.xy] = centerVal;
+}

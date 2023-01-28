@@ -1,0 +1,147 @@
+; Main mountain generator
+[swissFolded]
+octaves=16
+frequency=0.0005
+amplitude=0.9
+lacunarity=2
+persistence=0.5
+offset=0.45,0
+ridgeOffset=1
+warp=41.64
+maxHeight=2500
+
+; Hillscape generator
+[jordanFolded]
+octaves=12
+frequency=0.001
+amplitude=1
+lacunarity=2
+persistence=0.5
+persistence1=1
+offset=5000,5000
+warp0=100
+warp=-200
+damp0=1
+damp=0.3
+damp_scale=1
+maxHeight=1250
+
+; Currently unused
+[perlinTile]
+octaves=6
+frequency=0.0008
+amplitude=0.59
+lacunarity=1.37
+persistence=0.61
+offset=0,0
+maxHeight=1000
+
+; Flatness-preventing terrain bumps
+[perlinBump]
+octaves=5
+frequency=0.08
+amplitude=0.86
+lacunarity=3
+persistence=0.4
+offset=0,0
+maxHeight=2.5
+
+; Occasional sharp hills
+[iqMountain]
+octaves=16
+frequency=0.00
+amplitude=0.00
+lacunarity=0.00
+persistence=0.00
+offset=0,0
+ridgeOffset=0
+warp=0.00
+maxHeight=0.00
+
+; Currently unused
+[swissCell]
+octaves=16
+frequency=0.005
+amplitude=1
+lacunarity=2
+persistence=0.5
+offset=0,0
+ridgeOffset=0.5
+warp=8.1
+maxHeight=252
+
+; Cliff/ravine/canyon generator
+[swissFaults]
+octaves=12
+frequency=0.002
+amplitude=3.24
+lacunarity=2
+persistence=0.5
+offset=1500,1000
+ridgeOffset=1
+warp=156.85
+maxHeight=3990
+
+; Currently unused
+[perlinDune]
+octaves=4
+frequency=0.0015
+amplitude=0.59
+lacunarity=1.39
+persistence=0.61
+offset=1000,0
+maxHeight=40
+
+; Dunes for deserts
+[swissDune]
+octaves=3
+frequency=0.01
+amplitude=1.03
+lacunarity=1.22
+persistence=0.25
+offset=-500,400
+ridgeOffset=0.7
+warp=23.09
+maxHeight=47.88
+
+; Mask used to alternate between mountains and cliffs
+[mntVar]
+octaves=4
+frequency=0.0001
+amplitude=16.29
+lacunarity=1.21
+persistence=1.18
+offset=0,0
+maxHeight=1000
+
+; A 4-color noise sample of various frequencies, used for various purposes
+[colorVar]
+octaves=4
+frequency=0.02
+amplitude=1
+lacunarity=2
+persistence=0.5
+offset=0,0
+maxHeight=0
+
+; Add occasional mountains to non-montane regions
+[mountainBase]
+octaves=2
+frequency=0.00
+amplitude=0.00
+lacunarity=0.00
+persistence=0.00
+offset=0,0
+ridgeOffset=0.00
+warp=0
+maxHeight=0.00
+
+; Add occasional hills to non-woodland hills regions
+[hillBase]
+octaves=6
+frequency=0.00
+amplitude=0.00
+lacunarity=0.00
+persistence=0.00
+offset=0,0
+maxHeight=0.00
