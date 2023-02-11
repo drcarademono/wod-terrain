@@ -44,7 +44,7 @@ namespace Monobelisk
         {
             Mod.LoadAllAssetsFromBundle();
 
-            biomeMap = Mod.GetAsset<Texture2D>("wod_heightmap");
+            biomeMap = Mod.GetAsset<Texture2D>("daggerfall_heightmap");
             derivMap = Mod.GetAsset<Texture2D>("daggerfall_deriv_map");
             tileableNoise = Mod.GetAsset<Texture2D>("tileable_noise");
             csPrototype = Mod.GetAsset<ComputeShader>("TerrainComputer");
