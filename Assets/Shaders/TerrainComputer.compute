@@ -363,6 +363,8 @@ float GetHeightSample(float2 id, out float mountainPart) {
     float transitionWeight = pow(locationWeight, 0.5) * wildernessWeight;
     locationWeight = saturate(locationWeight - 0.5) / 0.5;
 
+    locationHeight = locationHeight + (BASEHEIGHT_MIN / 10000); //carademono's kludge to get rid of craters, don't ask me why this works
+
     baseHeight = lerp(baseHeight, locationHeight, locationWeight);
     float landWeight = saturate(((baseHeight - 100.0) / newHeight) / 5.0);
     transitionWeight *= landWeight;
