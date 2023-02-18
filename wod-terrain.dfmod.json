@@ -39,7 +39,7 @@
         "Assets/Game/Mods/wod-terrain/Scripts/Models/Noise Params/Perlin.cs",
         "Assets/Game/Mods/wod-terrain/Scripts/Models/Noise Params/SwissTurbulence.cs",
         "Assets/Game/Mods/wod-terrain/Assets/Maps/daggerfall_deriv_map.png",
-        "Assets/Game/Mods/wod-terrain/Assets/Maps/daggerfall_heightmap.psd"
+        "Assets/Game/Mods/wod-terrain/Assets/Maps/daggerfall_heightmap.png"
     ],
     "Dependencies": [
         {

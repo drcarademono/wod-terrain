@@ -8,7 +8,7 @@ persistence=0.5
 offset=0.45,0
 ridgeOffset=1
 warp=41.64
-maxHeight=2500
+maxHeight=3131
 
 ; Hillscape generator
 [jordanFolded]
@@ -24,7 +24,7 @@ warp=-200
 damp0=1
 damp=0.3
 damp_scale=1
-maxHeight=1250
+maxHeight=1548
 
 ; Currently unused
 [perlinTile]
@@ -49,18 +49,18 @@ maxHeight=2.5
 ; Occasional sharp hills
 [iqMountain]
 octaves=16
-frequency=0.00
-amplitude=0.00
-lacunarity=0.00
-persistence=0.00
+frequency=0.0008
+amplitude=1
+lacunarity=2
+persistence=0.5
 offset=0,0
 ridgeOffset=0
-warp=0.00
-maxHeight=0.00
+warp=1.15
+maxHeight=3224
 
 ; Currently unused
 [swissCell]
-octaves=16
+octaves=15
 frequency=0.005
 amplitude=1
 lacunarity=2
@@ -80,7 +80,7 @@ persistence=0.5
 offset=1500,1000
 ridgeOffset=1
 warp=156.85
-maxHeight=3990
+maxHeight=5000
 
 ; Currently unused
 [perlinDune]
@@ -102,7 +102,7 @@ persistence=0.25
 offset=-500,400
 ridgeOffset=0.7
 warp=23.09
-maxHeight=47.88
+maxHeight=60
 
 ; Mask used to alternate between mountains and cliffs
 [mntVar]
@@ -127,21 +127,21 @@ maxHeight=0
 ; Add occasional mountains to non-montane regions
 [mountainBase]
 octaves=2
-frequency=0.00
-amplitude=0.00
-lacunarity=0.00
-persistence=0.00
+frequency=0.0001
+amplitude=1.54
+lacunarity=1.37
+persistence=0.5
 offset=0,0
-ridgeOffset=0.00
+ridgeOffset=0.533
 warp=0
-maxHeight=0.00
+maxHeight=5000
 
 ; Add occasional hills to non-woodland hills regions
 [hillBase]
 octaves=6
-frequency=0.00
-amplitude=0.00
-lacunarity=0.00
-persistence=0.00
+frequency=0.0001
+amplitude=0.79
+lacunarity=1.79
+persistence=0.38
 offset=0,0
-maxHeight=0.00
+maxHeight=5000
