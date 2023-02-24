@@ -270,7 +270,7 @@ float LocationWeight(float2 pos, out float basemapHeight, out float wildernessWe
         float2 uv = saturate(locCenter / (terrainSize * float2(TERRAIN_X, TERRAIN_Y))) + uvOffset;
         float baseHeight = mapPixelHeights.SampleLevel(dm_linear_clamp_sampler, uv, 0).r;
 
-        float fadeDist = 32.0 * 2.0;
+        float fadeDist = 32.0 * 2.0; //slope of terrain near locations. Default: 32
 
         float2 nearestEdgeNarrow;
         float2 nearestEdge = NearestRadialEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
@@ -284,7 +284,7 @@ float LocationWeight(float2 pos, out float basemapHeight, out float wildernessWe
         noiseParams.maxHeight = newHeight;
         float noise = saturate(PositivePerlin(noiseParams));
 
-        float maxNarrowDist = lerp(5.0, 15.0, noise);
+        float maxNarrowDist = lerp(5.0, 15.0, noise); //default: 5, 15
         float narrowDist = distance(pos, nearestEdgeNarrow);
         narrowWeight += 1.0 - saturate(narrowDist / maxNarrowDist);
 
@@ -319,7 +319,7 @@ float LocationWeight(float2 pos, out float basemapHeight, out float wildernessWe
 
     wildernessWeight = 1.0 - saturate(narrowWeight);
 
-    basemapHeight = max(105.0 / newHeight, height / weight);
+    basemapHeight = max(80.0 / newHeight, height / weight); // Default: 105.0 - but lower this to 80 seems to fix the mini-craters
     weight = saturate(weight);
     basemapHeight = lerp(basemapHeight, nearestHeight, saturate(narrowWeight));
     basemapHeight = saturate(basemapHeight);
@@ -361,7 +361,7 @@ float GetHeightSample(float2 id, out float mountainPart) {
     float transition = abs(SimplePerlin(p));
 
     float transitionWeight = pow(locationWeight, 0.5) * wildernessWeight;
-    locationWeight = saturate(locationWeight - 0.5) / 0.5;
+    locationWeight = saturate(locationWeight - 0.5) / 0.5; //flattens locations
 
     locationHeight = locationHeight + (BASEHEIGHT_MIN / 10000); //carademono's kludge to get rid of craters, don't ask me why this works
 
@@ -373,9 +373,9 @@ float GetHeightSample(float2 id, out float mountainPart) {
     baseHeight += transition * transitionHeight * transitionWeight * 0.5;
 
     mountainPart = extraHeight + bumps;
-    extraHeight *= (1.0 - locationWeight);
+    extraHeight *= (1.0 - locationWeight);//Default: 1.0
 
-    baseHeight += extraHeight + bumps;
+    baseHeight += extraHeight + bumps; // This can raise and lower ALL terrain
 
     return baseHeight;
 }
@@ -464,7 +464,7 @@ void TilemapComputer(uint3 uid : SV_DispatchThreadID)
     BiomeWeights w = GetBiomeWeights(worldUv, id.xy, false);
     float oldVal = heightmapBuffer[heightmapIdx];
 
-    w.land = saturate((oldVal - (100.0 / newHeight)) / (40.0 / newHeight));
+    w.land = saturate((oldVal - (100.0 / newHeight)) / (40.0 / newHeight));//defaults: 100, 40
     w.mountain = max(w.mountain, mountainBase * 0.25);
 
     // Get 4 surrounding mountain noise samples for steepness calculation
@@ -503,7 +503,7 @@ void TilemapComputer(uint3 uid : SV_DispatchThreadID)
     tilemapData[tilemapIdx] = TilemapSample(id.xy, noise);
 
     // Step 2: determine if ocean/lake
-    if (w.land < 0.01) {
+    if (w.land < 0.01) { //default: 0.01
         tilemapData[tilemapIdx] = WATER;
         return;
     }
