@@ -22,6 +22,8 @@ SamplerState bm_point_clamp_sampler;
 Texture2D<float4> DerivMap;
 SamplerState dm_linear_clamp_sampler;
 
+Texture2D<float4> PortMap; //added to set locations for port cities
+
 #include "noises.cginc"
 #include "noiseParams.cginc"
 #include "heightSampling.cginc"
@@ -211,6 +213,31 @@ float2 NearestRadialEdgePoint(float2 pos, float2 locPos, float2 locSize, out flo
     return locCenter + dir * edgeDist;
 }
 
+float2 NearestRectangularEdgePoint(float2 pos, float2 locPos, float2 locSize, out float2 nearestEdgeNarrow) {
+    float2 halfLocSize = locSize * 0.5;
+
+    // Calculate the center of the rectangle
+    float2 locCenter = locPos + halfLocSize;
+
+    // Calculate the half extents of the rectangle
+    float2 halfExtents = halfLocSize;
+
+    // Calculate the offset from the center of the rectangle
+    float2 offset = pos - locCenter;
+
+    // Clamp the offset to the half extents
+    float2 clampedOffset = float2(
+        clamp(offset.x, -halfExtents.x, halfExtents.x),
+        clamp(offset.y, -halfExtents.y, halfExtents.y)
+    );
+
+    // Add the clamped offset to the center to get the nearest point on the rectangle
+    nearestEdgeNarrow = locCenter + clampedOffset;
+
+    return nearestEdgeNarrow;
+}
+
+
 float GetMapPixelLinearHeight(float2 pos) {
     //pos.y -= terrainSize.y; 
     //pos -= terrainSize;
@@ -249,7 +276,7 @@ float2 ClampToLine(float2 p1, float2 p2, float2 pos) {
 }
 
 #define F_MAX 99999999.9
-float LocationWeight(float2 pos, out float basemapHeight, out float wildernessWeight) {
+float LocationWeight(float2 pos, out float basemapHeight, out float wildernessWeight, out float portLoc) {
     float weight = 0.0;
     float narrowWeight = 0.0;
     float height = 0.0;
@@ -270,10 +297,25 @@ float LocationWeight(float2 pos, out float basemapHeight, out float wildernessWe
         float2 uv = saturate(locCenter / (terrainSize * float2(TERRAIN_X, TERRAIN_Y))) + uvOffset;
         float baseHeight = mapPixelHeights.SampleLevel(dm_linear_clamp_sampler, uv, 0).r;
 
-        float fadeDist = 32.0 * 2.0; //slope of terrain near locations. Default: 32
+        float portHeight = PortMap.SampleLevel(dm_linear_clamp_sampler, uv, 0).r;
+        
+        float fadeDist;
+
+        if (portHeight > 0.2) { // dock location setting
+        fadeDist = 6.0;
+        portLoc = 1.0;
+        } else {
+        fadeDist = 32.0 * 2.0; //slope of terrain near locations. Default: 32
+        }
 
         float2 nearestEdgeNarrow;
-        float2 nearestEdge = NearestRadialEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
+
+        float2 nearestEdge;
+        if (portHeight > 0.2) {
+            nearestEdge = NearestRectangularEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
+        } else {
+            nearestEdge = NearestRadialEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
+        }
 
         PerlinParams noiseParams = PerlinDune(nearestEdgeNarrow);
         noiseParams.amplitude = 1.0;
@@ -300,7 +342,7 @@ float LocationWeight(float2 pos, out float basemapHeight, out float wildernessWe
         noiseParams.maxHeight = newHeight;
         noise = pow(saturate(PositivePerlin(noiseParams)), 2);
 
-        fadeDist += fadeDist * 8.0 * noise;
+        fadeDist += fadeDist * 8.0 * noise; //default 8.0
         float edgeDist = distance(nearestEdge, pos);
 
         float w = 1.0 - saturate(edgeDist / fadeDist);
@@ -337,8 +379,8 @@ float GetHeightSample(float2 id, out float mountainPart) {
 
     float2 pos = tp + tileUv * heightmapResolution;
 
-    float locationHeight, bumpWeight;
-    float locationWeight = LocationWeight(pos, locationHeight, bumpWeight);
+    float locationHeight, bumpWeight, portLoc;
+    float locationWeight = LocationWeight(pos, locationHeight, bumpWeight, portLoc);
     float wildernessWeight = bumpWeight;
     bumpWeight *= pow(locationWeight, 0.25);
 
@@ -363,7 +405,11 @@ float GetHeightSample(float2 id, out float mountainPart) {
     float transitionWeight = pow(locationWeight, 0.5) * wildernessWeight;
     locationWeight = saturate(locationWeight - 0.5) / 0.5; //flattens locations
 
-    locationHeight = locationHeight + (BASEHEIGHT_MIN / 10000); //carademono's kludge to get rid of craters, don't ask me why this works
+    if (portLoc == 1.0) { // dock location setting
+        locationHeight = 0.021; // 0.0201 is lowest to still have grass and sand
+    } else {
+        locationHeight = locationHeight + (BASEHEIGHT_MIN / 10000); //carademono's kludge to get rid of craters, don't ask me why this works
+    }
 
     baseHeight = lerp(baseHeight, locationHeight, locationWeight);
     float landWeight = saturate(((baseHeight - 100.0) / newHeight) / 5.0);
@@ -375,10 +421,14 @@ float GetHeightSample(float2 id, out float mountainPart) {
     mountainPart = extraHeight + bumps;
     extraHeight *= (1.0 - locationWeight);//Default: 1.0
 
-    baseHeight += extraHeight + bumps; // This can raise and lower ALL terrain
-
+    if (portLoc == 1.0) {
+        baseHeight += (extraHeight + bumps) / 2; // This can raise and lower ALL terrain
+    } else {
+        baseHeight += extraHeight + bumps; // This can raise and lower ALL terrain   
+    }
     return baseHeight;
 }
+
 
 void HeightmapComputation(int3 id, int i) {
     int rnIndex = id.x + id.y * (heightmapResolution + 1);
