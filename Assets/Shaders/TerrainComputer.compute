@@ -301,7 +301,7 @@ float LocationWeight(float2 pos, out float basemapHeight, out float wildernessWe
         
         float fadeDist;
 
-        if (portHeight > 0.2) { // dock location setting
+        if (portHeight > 0.0) { // dock location setting
         fadeDist = 64.0;
         portLoc = 1.0;
         } else {
@@ -311,7 +311,7 @@ float LocationWeight(float2 pos, out float basemapHeight, out float wildernessWe
         float2 nearestEdgeNarrow;
 
         float2 nearestEdge;
-        if (portHeight > 0.2) {
+        if (portHeight > 0.0) {
             nearestEdge = NearestRectangularEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
         } else {
             nearestEdge = NearestRadialEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
@@ -400,7 +400,7 @@ float PortLocationWeight(float2 pos, out float basemapHeight, out float wilderne
         float2 nearestEdgeNarrow;
 
         float2 nearestEdge;
-        if (portHeight > 0.2) {
+        if (portHeight > 0.0) {
             nearestEdge = NearestRectangularEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
         } else {
             nearestEdge = NearestRadialEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
