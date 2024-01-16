@@ -301,17 +301,16 @@ float LocationWeight(float2 pos, out float basemapHeight, out float wildernessWe
         
         float fadeDist;
 
-        if (portHeight > 0.0) { // dock location setting
-        fadeDist = 64.0;
+        if (portHeight > 0.2) { // dock location setting
         portLoc = 1.0;
-        } else {
+        } 
+
         fadeDist = 32.0 * 2.0; //slope of terrain near locations. Default: 32
-        }
 
         float2 nearestEdgeNarrow;
 
         float2 nearestEdge;
-        if (portHeight > 0.0) {
+        if (portHeight > 0.2) {
             nearestEdge = NearestRectangularEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
         } else {
             nearestEdge = NearestRadialEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
@@ -395,12 +394,16 @@ float PortLocationWeight(float2 pos, out float basemapHeight, out float wilderne
         
         float fadeDist;
 
-        fadeDist = 3.0; //slope of terrain near locations. Default: 32
+        if (portHeight > 0.2) { // dock location setting
+        fadeDist = 3.0;
+        } else {
+        fadeDist = 32.0 * 2.0; //slope of terrain near locations. Default: 32
+        }
 
         float2 nearestEdgeNarrow;
 
         float2 nearestEdge;
-        if (portHeight > 0.0) {
+        if (portHeight > 0.2) {
             nearestEdge = NearestRectangularEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
         } else {
             nearestEdge = NearestRadialEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
@@ -494,17 +497,16 @@ float GetHeightSample(float2 id, out float mountainPart) {
     float transitionWeight = pow(locationWeight, 0.5) * wildernessWeight;
     locationWeight = saturate(locationWeight - 0.5) / 0.5; //flattens locations
 
-    float portLocationWeight;
+    float portLocationWeight = PortLocationWeight(pos, locationHeight, bumpWeight);
 
     if (portLoc == 1.0) { // dock location setting
-        portLocationWeight = PortLocationWeight(pos, locationHeight, bumpWeight);
         locationHeight = 0.021; // 0.0201 is lowest to still have grass and sand
     } else {
         locationHeight = locationHeight + (BASEHEIGHT_MIN / 10000); //carademono's kludge to get rid of craters, don't ask me why this works
     }
 
 
-    if (baseHeight <= 0.021) {
+    if (portLoc == 1 || baseHeight <= 0.021) {
         baseHeight = lerp(baseHeight, locationHeight, portLocationWeight);
     } else {
         baseHeight = lerp(baseHeight, locationHeight, locationWeight);
@@ -680,4 +682,3 @@ void TilemapComputer(uint3 uid : SV_DispatchThreadID)
         tilemapData[tilemapIdx] = GRASS;
     }
 }
-
