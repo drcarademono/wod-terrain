@@ -239,7 +239,7 @@ float2 NearestRectangularEdgePoint(float2 pos, float2 locPos, float2 locSize, ou
 
 
 float GetMapPixelLinearHeight(float2 pos) {
-    //pos.y -= terrainSize.y; 
+    //pos.y -= terrainSize.y;
     //pos -= terrainSize;
     /*pos.y += terrainSize.y;
     pos.x -= terrainSize.x;*/
@@ -298,19 +298,20 @@ float LocationWeight(float2 pos, out float basemapHeight, out float wildernessWe
         float baseHeight = mapPixelHeights.SampleLevel(dm_linear_clamp_sampler, uv, 0).r;
 
         float portHeight = PortMap.SampleLevel(dm_linear_clamp_sampler, uv, 0).r;
-        
+
         float fadeDist;
 
-        if (portHeight > 0.2) { // dock location setting
+        if (portHeight > 0.0005) { // dock location setting
+        fadeDist = 64.0;
         portLoc = 1.0;
-        } 
-
+        } else {
         fadeDist = 32.0 * 2.0; //slope of terrain near locations. Default: 32
+        }
 
         float2 nearestEdgeNarrow;
 
         float2 nearestEdge;
-        if (portHeight > 0.2) {
+        if (portHeight > 0.0005) {
             nearestEdge = NearestRectangularEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
         } else {
             nearestEdge = NearestRadialEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
@@ -391,19 +392,15 @@ float PortLocationWeight(float2 pos, out float basemapHeight, out float wilderne
         float baseHeight = mapPixelHeights.SampleLevel(dm_linear_clamp_sampler, uv, 0).r;
 
         float portHeight = PortMap.SampleLevel(dm_linear_clamp_sampler, uv, 0).r;
-        
+
         float fadeDist;
 
-        if (portHeight > 0.2) { // dock location setting
-        fadeDist = 3.0;
-        } else {
-        fadeDist = 32.0 * 2.0; //slope of terrain near locations. Default: 32
-        }
+        fadeDist = 3.0; //slope of terrain near locations. Default: 32
 
         float2 nearestEdgeNarrow;
 
         float2 nearestEdge;
-        if (portHeight > 0.2) {
+        if (portHeight > 0.0005) {
             nearestEdge = NearestRectangularEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
         } else {
             nearestEdge = NearestRadialEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
@@ -506,12 +503,12 @@ float GetHeightSample(float2 id, out float mountainPart) {
     }
 
 
-    if (portLoc == 1 || baseHeight <= 0.021) {
+    if (portLoc == 1.0 && baseHeight <= locationHeight) {
         baseHeight = lerp(baseHeight, locationHeight, portLocationWeight);
     } else {
         baseHeight = lerp(baseHeight, locationHeight, locationWeight);
     }
-    
+
 
 
     float landWeight = saturate(((baseHeight - 100.0) / newHeight) / 5.0);
@@ -523,11 +520,8 @@ float GetHeightSample(float2 id, out float mountainPart) {
     mountainPart = extraHeight + bumps;
     extraHeight *= (1.0 - locationWeight);//Default: 1.0
 
-    if (portLoc == 1.0) {
-        baseHeight += (extraHeight + bumps) / 2; // This can raise and lower ALL terrain
-    } else {
-        baseHeight += extraHeight + bumps; // This can raise and lower ALL terrain   
-    }
+    baseHeight += extraHeight + bumps; // This can raise and lower ALL terrain
+
     return baseHeight;
 }
 
