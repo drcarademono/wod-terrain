@@ -23,6 +23,7 @@ Texture2D<float4> DerivMap;
 SamplerState dm_linear_clamp_sampler;
 
 Texture2D<float4> PortMap; //added to set locations for port cities
+SamplerState pm_point_clamp_sampler;
 
 #include "noises.cginc"
 #include "noiseParams.cginc"
@@ -463,11 +464,26 @@ float GetHeightSample(float2 id, out float mountainPart) {
 
     float2 pos = tp + tileUv * heightmapResolution;
 
-    float2 uvOffset = float2(-1.5, 0.5) / float2(TERRAIN_X, TERRAIN_Y);
+    float2 uvOffset = float2(-0.5, -0.75) / float2(TERRAIN_X, TERRAIN_Y);
 
-    float2 fallbackUv = saturate(pos / (terrainSize * float2(TERRAIN_X, TERRAIN_Y))) + uvOffset;
+    float2 portUv = saturate(pos / (terrainSize * float2(TERRAIN_X, TERRAIN_Y))) + uvOffset;
 
-    float portHeight = PortMap.SampleLevel(dm_linear_clamp_sampler, fallbackUv, 0).r;
+    float portHeight = PortMap.SampleLevel(pm_point_clamp_sampler, portUv, 0).r;
+
+    // Calculate the normalized distance from each point 'pos' to the 'center'
+    // Assuming 'maxFalloffDistance' is the maximum distance at which falloff becomes 0
+    float maxFalloffDistance = 1.0; // Define this based on your requirements
+
+    // Calculate the distance from the current position to the center
+    float distanceFromCenter = length(pos - (portUv * terrainSize * float2(TERRAIN_X, TERRAIN_Y))) / maxFalloffDistance;
+
+    // Clamp the distance to be between 0 and 1
+    distanceFromCenter = saturate(distanceFromCenter);
+
+    // Apply a falloff function - here using a simple linear falloff for demonstration
+    float portFalloff = 1.0 - distanceFromCenter;
+
+    // Now 'portFalloff' is 1.0 at the center and decreases to 0 as you move away
 
     float locationHeight, bumpWeight, portLoc;
     float locationWeight = LocationWeight(pos, portHeight, locationHeight, bumpWeight);
@@ -505,6 +521,8 @@ float GetHeightSample(float2 id, out float mountainPart) {
 
     if (portHeight > 0.0 && baseHeight <= locationHeight) {
         baseHeight = lerp(baseHeight, locationHeight, portLocationWeight);
+    //if ( portFalloff > 0.0) {
+    //    baseHeight = 0.0;
     } else {
         baseHeight = lerp(baseHeight, locationHeight, locationWeight);
     }
