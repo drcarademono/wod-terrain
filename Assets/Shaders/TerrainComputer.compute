@@ -511,10 +511,10 @@ float GetHeightSample(float2 id, out float mountainPart) {
     locationHeight = lerp(regLocationHeight, portLocationHeight, portLerp);
 
     if ( portHeight > 0.0 && baseHeight <= 0.021 ) {
-        baseHeight = lerp(baseHeight, locationHeight, portLocationWeight);
-        //float baseHeight1 = lerp(baseHeight, locationHeight, locationWeight);
-        //float baseHeight2 = lerp(baseHeight, locationHeight, portLocationWeight);
-        //baseHeight = lerp(baseHeight1, baseHeight2, portLerp);
+        //baseHeight = lerp(baseHeight, locationHeight, portLocationWeight);
+        float baseHeight1 = lerp(baseHeight, locationHeight, locationWeight);
+        float baseHeight2 = lerp(baseHeight, locationHeight, portLocationWeight);
+        baseHeight = lerp(baseHeight1, baseHeight2, portLerp);
         //baseHeight = portHeight / 10;
         //baseHeight = 0.0;
     } else {
