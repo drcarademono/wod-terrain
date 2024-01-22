@@ -298,13 +298,7 @@ float LocationWeight(float2 pos, float portHeight, out float basemapHeight, out 
         float2 uv = saturate(locCenter / (terrainSize * float2(TERRAIN_X, TERRAIN_Y))) + uvOffset;
         float baseHeight = mapPixelHeights.SampleLevel(dm_linear_clamp_sampler, uv, 0).r;
 
-        float fadeDist;
-
-        if (portHeight > 0.0) { // dock location setting
-        fadeDist = 64.0;
-        } else {
-        fadeDist = 32.0 * 2.0; //slope of terrain near locations. Default: 32
-        }
+        float fadeDist = 64.0; //slope of terrain near locations. Default: 32
 
         float2 nearestEdgeNarrow;
 
@@ -391,11 +385,11 @@ float PortLocationWeight(float2 pos, float portHeight, out float basemapHeight, 
 
         float fadeDist;
 
-        if (portHeight > 0.0) {
+        //if (portHeight > 0.0) {
             fadeDist = 3.0; //slope of terrain near locations. Default: 32
-        } else {
-            fadeDist = 64.0; //slope of terrain near locations. Default: 32
-        }
+        //} else {
+        //    fadeDist = 64.0; //slope of terrain near locations. Default: 32
+        //}
 
         float2 nearestEdgeNarrow;
 
@@ -468,11 +462,11 @@ float GetHeightSample(float2 id, out float mountainPart) {
 
     float2 pos = tp + tileUv * heightmapResolution;
 
-    float2 uvOffset = float2(-0.2, -0.75) / float2(TERRAIN_X, TERRAIN_Y);
+    float2 uvOffset = float2(-0.25, -1.1) / float2(TERRAIN_X, TERRAIN_Y);
 
     float2 portUv = saturate(pos / (terrainSize * float2(TERRAIN_X, TERRAIN_Y))) + uvOffset;
 
-    float portHeight = PortMap.SampleLevel(pm_point_clamp_sampler, portUv, 0).r;
+    float portHeight = PortMap.SampleLevel(dm_linear_clamp_sampler, portUv, 0).r;
 
     float locationHeight, bumpWeight, portLoc;
     float locationWeight = LocationWeight(pos, portHeight, locationHeight, bumpWeight);
@@ -500,16 +494,24 @@ float GetHeightSample(float2 id, out float mountainPart) {
     float transitionWeight = pow(locationWeight, 0.5) * wildernessWeight;
     locationWeight = saturate(locationWeight - 0.5) / 0.5; //flattens locations
 
-    float portLocationWeight = PortLocationWeight(pos, portHeight, locationHeight, bumpWeight);
+    float portLerp = saturate(portHeight * 10);
 
-    if (portHeight > 0.0) { // dock location setting
-        locationHeight = 0.021; // 0.0201 is lowest to still have grass and sand
-    } else {
-        locationHeight = locationHeight + (BASEHEIGHT_MIN / 10000); //carademono's kludge to get rid of craters, don't ask me why this works
-    }
+    //if (portHeight > 0.0) { // dock location setting
+        float portLocationHeight = 0.021; // 0.0201 is lowest to still have grass and sand
+    //} else {
+        float regLocationHeight = locationHeight + (BASEHEIGHT_MIN / 10000); //carademono's kludge to get rid of craters, don't ask me why this works
+    //}
 
-    if (portHeight > 0.0 && baseHeight <= 0.021) {
-        baseHeight = lerp(baseHeight, locationHeight, portLocationWeight);
+    locationHeight = lerp(regLocationHeight, portLocationHeight, portLerp);
+
+    if ( portHeight > 0.0 && baseHeight <= 0.021 ) {
+        float portLocationWeight = PortLocationWeight(pos, portHeight, locationHeight, bumpWeight);
+        //baseHeight = lerp(baseHeight, locationHeight, portLocationWeight);
+        float baseHeight1 = lerp(baseHeight, locationHeight, locationWeight);
+        float baseHeight2 = lerp(baseHeight, locationHeight, portLocationWeight);
+        baseHeight = lerp(baseHeight1, baseHeight2, portLerp);
+        //baseHeight = portHeight / 10;
+        //baseHeight = 0.0;
     } else {
         baseHeight = lerp(baseHeight, locationHeight, locationWeight);
     }
