@@ -467,6 +467,7 @@ float GetHeightSample(float2 id, out float mountainPart) {
     float2 portUv = saturate(pos / (terrainSize * float2(TERRAIN_X, TERRAIN_Y))) + uvOffset;
 
     float portHeight = PortMap.SampleLevel(dm_linear_clamp_sampler, portUv, 0).r;
+    float seaHeight = PortMap.SampleLevel(dm_linear_clamp_sampler, portUv, 0).b;
 
     float locationHeight, bumpWeight, portLoc;
     float locationWeight = LocationWeight(pos, portHeight, locationHeight, bumpWeight);
@@ -508,7 +509,7 @@ float GetHeightSample(float2 id, out float mountainPart) {
     float regLocationHeight = locationHeight + (BASEHEIGHT_MIN / 10000); //carademono's kludge to get rid of craters, don't ask me why this works
     //}
 
-	if ( pos.x < 5000 || pos.y < 5000) { // kludgey fix for player ships on hills. Should be replaced eventually by a PortMap channel for sea level locations
+	if ( seaHeight > 0 ) { // kludgey fix for player ships on hills. Should be replaced eventually by a PortMap channel for sea level locations
 		locationHeight = 0;
 	} else {
     	locationHeight = lerp(regLocationHeight, portLocationHeight, portLerp);
