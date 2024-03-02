@@ -75,7 +75,7 @@ namespace WODTerrain
         }
     }
 
-    public class TilemapTerrainMaterialProvider : WODTerrainMaterialProvider
+    public class WODTilemapTerrainMaterialProvider : WODTerrainMaterialProvider
     {
         private readonly Shader shader = Shader.Find(MaterialReader._DaggerfallTilemapShaderName);
 
@@ -93,7 +93,7 @@ namespace WODTerrain
         }
     }
 
-    public class TilemapTextureArrayTerrainMaterialProvider : WODTerrainMaterialProvider
+    public class WODTilemapTextureArrayTerrainMaterialProvider : WODTerrainMaterialProvider
     {
         private readonly Shader shader = Shader.Find(MaterialReader._DaggerfallTilemapTextureArrayShaderName);
 
