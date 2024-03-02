@@ -35,24 +35,39 @@ namespace WODTerrain
 
     public abstract class WODTerrainMaterialProvider : ITerrainMaterialProvider
     {
+        /// <summary>
+        /// Gets default implementation supported on current system.
+        /// </summary>
+        internal static WODTerrainMaterialProvider Default
+        {
+            get
+            {
+                if (WODTilemapTextureArrayTerrainMaterialProvider.IsSupported)
+                    return new WODTilemapTextureArrayTerrainMaterialProvider();
+                else
+                    return new WODTilemapTerrainMaterialProvider();
+            }
+        }
+
         public abstract Material CreateMaterial();
         public abstract void PromoteMaterial(DaggerfallTerrain daggerfallTerrain, TerrainMaterialData terrainMaterialData);
 
         protected int GetGroundArchive(int worldClimate)
         {
-            var climateInfo = GetClimateInfo(worldClimate);
-            return climateInfo.GroundArchive;
+            return 302; // Directly return 302, ignoring the world climate parameter
         }
 
         protected virtual (int GroundArchive, DFLocation.ClimateSettings Settings, bool IsWinter) GetClimateInfo(int worldClimate)
         {
             DFLocation.ClimateSettings climate = MapsFile.GetWorldClimateSettings(worldClimate);
-            int groundArchive = climate.GroundArchive;
+            int groundArchive = 302; // Set groundArchive to always be 302
             bool isWinter = false;
 
+            // The original logic for determining if it's winter is kept,
+            // but it's no longer used to adjust the groundArchive value.
+            // You can remove this if winter detection is not needed for other reasons.
             if (climate.ClimateType != DFLocation.ClimateBaseType.Desert && DaggerfallUnity.Instance.WorldTime.Now.SeasonValue == DaggerfallDateTime.Seasons.Winter)
             {
-                groundArchive++;
                 isWinter = true;
             }
 
