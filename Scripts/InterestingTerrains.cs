@@ -71,6 +71,18 @@ namespace Monobelisk
 
             DaggerfallUnity.Instance.TerrainTexturing = new InterestingTerrainTexturer();
 
+            // Set WOD custom terrain material provider
+            ITerrainMaterialProvider materialProvider;
+
+            if (TilemapTextureArrayTerrainMaterialProvider.IsSupported)
+            {
+                materialProvider = new TilemapTextureArrayTerrainMaterialProvider();
+            }
+            else
+            {
+                materialProvider = new TilemapTerrainMaterialProvider();
+            }
+
             DaggerfallTerrain.OnPromoteTerrainData += tileDataCache.UncacheTileData;
 
             Mod.IsReady = true;
