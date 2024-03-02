@@ -27,12 +27,6 @@ namespace WODTerrain
         }
     }
 
-    public interface ITerrainMaterialProvider
-    {
-        Material CreateMaterial();
-        void PromoteMaterial(DaggerfallTerrain daggerfallTerrain, TerrainMaterialData terrainMaterialData);
-    }
-
     public abstract class WODTerrainMaterialProvider : ITerrainMaterialProvider
     {
         /// <summary>
