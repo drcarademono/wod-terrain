@@ -4,6 +4,7 @@ using DaggerfallWorkshop.Game.Utility.ModSupport;
 using System.Collections;
 using UnityEngine;
 using Monobelisk.Compatibility;
+using WODTerrain;
 
 namespace Monobelisk
 {
@@ -83,7 +84,8 @@ namespace Monobelisk
                 BasicRoadsUtils.Init();
 
             // Set WOD custom terrain material provider
-            DaggerfallUnity.Instance.TerrainMaterialProvider = WODTerrain.WODTerrainMaterialProvider.Default;
+            DaggerfallUnity.Instance.TerrainMaterialProvider = new WODTilemapTerrainMaterialProvider();
+
 
         }
 

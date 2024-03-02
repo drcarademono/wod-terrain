@@ -7,65 +7,22 @@ using DaggerfallWorkshop;
 
 namespace WODTerrain
 {
-    public readonly struct TerrainMaterialData
-    {
-        public Material Material { get; }
-        public TerrainData TerrainData { get; }
-        public Texture2D TileMapTexture { get; }
-        public int WorldClimate { get; }
-
-        internal TerrainMaterialData(Material material, TerrainData terrainData, Texture2D tileMapTexture, int worldClimate)
-        {
-            if (material == null) throw new ArgumentNullException(nameof(material));
-            if (terrainData == null) throw new ArgumentNullException(nameof(terrainData));
-            if (tileMapTexture == null) throw new ArgumentNullException(nameof(tileMapTexture));
-
-            Material = material;
-            TerrainData = terrainData;
-            TileMapTexture = tileMapTexture;
-            WorldClimate = worldClimate;
-        }
-    }
-
     public abstract class WODTerrainMaterialProvider : ITerrainMaterialProvider
     {
-        /// <summary>
-        /// Gets default implementation supported on current system.
-        /// </summary>
-        internal static WODTerrainMaterialProvider Default
-        {
-            get
-            {
-                if (WODTilemapTextureArrayTerrainMaterialProvider.IsSupported)
-                    return new WODTilemapTextureArrayTerrainMaterialProvider();
-                else
-                    return new WODTilemapTerrainMaterialProvider();
-            }
-        }
-
         public abstract Material CreateMaterial();
-        public abstract void PromoteMaterial(DaggerfallTerrain daggerfallTerrain, TerrainMaterialData terrainMaterialData);
+
+        // Ensure DaggerfallWorkshop.TerrainMaterialData is used to match the interface expectation.
+        public abstract void PromoteMaterial(DaggerfallTerrain daggerfallTerrain, DaggerfallWorkshop.TerrainMaterialData terrainMaterialData);
 
         protected int GetGroundArchive(int worldClimate)
         {
-            return 302; // Directly return 302, ignoring the world climate parameter
+            return 302; // Always returns 302 for simplification
         }
 
         protected virtual (int GroundArchive, DFLocation.ClimateSettings Settings, bool IsWinter) GetClimateInfo(int worldClimate)
         {
-            DFLocation.ClimateSettings climate = MapsFile.GetWorldClimateSettings(worldClimate);
-            int groundArchive = 302; // Set groundArchive to always be 302
-            bool isWinter = false;
-
-            // The original logic for determining if it's winter is kept,
-            // but it's no longer used to adjust the groundArchive value.
-            // You can remove this if winter detection is not needed for other reasons.
-            if (climate.ClimateType != DFLocation.ClimateBaseType.Desert && DaggerfallUnity.Instance.WorldTime.Now.SeasonValue == DaggerfallDateTime.Seasons.Winter)
-            {
-                isWinter = true;
-            }
-
-            return (groundArchive, climate, isWinter);
+            // Simplifies the method for always returning 302 for GroundArchive
+            return (302, new DFLocation.ClimateSettings(), false);
         }
     }
 
@@ -78,7 +35,8 @@ namespace WODTerrain
             return new Material(shader);
         }
 
-        public override void PromoteMaterial(DaggerfallTerrain daggerfallTerrain, TerrainMaterialData terrainMaterialData)
+        // Use DaggerfallWorkshop.TerrainMaterialData for the method parameter
+        public override void PromoteMaterial(DaggerfallTerrain daggerfallTerrain, DaggerfallWorkshop.TerrainMaterialData terrainMaterialData)
         {
             Material tileSetMaterial = DaggerfallUnity.Instance.MaterialReader.GetTerrainTilesetMaterial(GetGroundArchive(terrainMaterialData.WorldClimate));
             terrainMaterialData.Material.SetTexture(TileUniforms.TileAtlasTex, tileSetMaterial.GetTexture(TileUniforms.TileAtlasTex));
@@ -98,7 +56,8 @@ namespace WODTerrain
             return new Material(shader);
         }
 
-        public override void PromoteMaterial(DaggerfallTerrain daggerfallTerrain, TerrainMaterialData terrainMaterialData)
+        // Use DaggerfallWorkshop.TerrainMaterialData for the method parameter
+        public override void PromoteMaterial(DaggerfallTerrain daggerfallTerrain, DaggerfallWorkshop.TerrainMaterialData terrainMaterialData)
         {
             Material tileMaterial = DaggerfallUnity.Instance.MaterialReader.GetTerrainTextureArrayMaterial(GetGroundArchive(terrainMaterialData.WorldClimate));
 
@@ -108,7 +67,6 @@ namespace WODTerrain
             terrainMaterialData.Material.SetTexture(TileTexArrUniforms.TileMetallicGlossMapTexArr, tileMaterial.GetTexture(TileTexArrUniforms.TileMetallicGlossMapTexArr));
             terrainMaterialData.Material.SetTexture(TileTexArrUniforms.TilemapTex, terrainMaterialData.TileMapTexture);
 
-            // Assign keywords based on the source material to the destination material
             AssignKeyword("NORMAL_MAP", tileMaterial, terrainMaterialData.Material);
             AssignKeyword("HEIGHT_MAP", tileMaterial, terrainMaterialData.Material);
             AssignKeyword("METALLIC_GLOSS_MAP", tileMaterial, terrainMaterialData.Material);
