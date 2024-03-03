@@ -11,18 +11,38 @@ namespace WODTerrain
     {
         public abstract Material CreateMaterial();
 
-        // Ensure DaggerfallWorkshop.TerrainMaterialData is used to match the interface expectation.
-        public abstract void PromoteMaterial(DaggerfallTerrain daggerfallTerrain, DaggerfallWorkshop.TerrainMaterialData terrainMaterialData);
+        public abstract void PromoteMaterial(DaggerfallTerrain daggerfallTerrain, TerrainMaterialData terrainMaterialData);
 
+        /// <summary>
+        /// Parses climate informations and retrieves ground archive index.
+        /// </summary>
+        /// <param name="worldClimate">Index of world climate.</param>
+        /// <returns>Texture archive index.</returns>
         protected int GetGroundArchive(int worldClimate)
         {
-            return 302; // Always returns 302 for simplification
+            return GetClimateInfo(worldClimate).GroundArchive;
         }
 
+        /// <summary>
+        /// Parses climate informations.
+        /// </summary>
+        /// <param name="worldClimate">Index of world climate.</param>
+        /// <returns>Parsed climate informations.</returns>
         protected virtual (int GroundArchive, DFLocation.ClimateSettings Settings, bool IsWinter) GetClimateInfo(int worldClimate)
         {
-            // Simplifies the method for always returning 302 for GroundArchive
-            return (302, new DFLocation.ClimateSettings(), false);
+            // Get current climate and ground archive
+            DFLocation.ClimateSettings climate = MapsFile.GetWorldClimateSettings(worldClimate);
+            int groundArchive = climate.GroundArchive;
+            bool isWinter = false;
+            if (climate.ClimateType != DFLocation.ClimateBaseType.Desert &&
+                DaggerfallUnity.Instance.WorldTime.Now.SeasonValue == DaggerfallDateTime.Seasons.Winter)
+            {
+                // Offset to snow textures
+                groundArchive++;
+                isWinter = true;
+            }
+
+            return (groundArchive, climate, isWinter);
         }
     }
 
@@ -35,8 +55,7 @@ namespace WODTerrain
             return new Material(shader);
         }
 
-        // Use DaggerfallWorkshop.TerrainMaterialData for the method parameter
-        public override void PromoteMaterial(DaggerfallTerrain daggerfallTerrain, DaggerfallWorkshop.TerrainMaterialData terrainMaterialData)
+        public override void PromoteMaterial(DaggerfallTerrain daggerfallTerrain, TerrainMaterialData terrainMaterialData)
         {
             Material tileSetMaterial = DaggerfallUnity.Instance.MaterialReader.GetTerrainTilesetMaterial(GetGroundArchive(terrainMaterialData.WorldClimate));
             terrainMaterialData.Material.SetTexture(TileUniforms.TileAtlasTex, tileSetMaterial.GetTexture(TileUniforms.TileAtlasTex));
@@ -56,8 +75,7 @@ namespace WODTerrain
             return new Material(shader);
         }
 
-        // Use DaggerfallWorkshop.TerrainMaterialData for the method parameter
-        public override void PromoteMaterial(DaggerfallTerrain daggerfallTerrain, DaggerfallWorkshop.TerrainMaterialData terrainMaterialData)
+        public override void PromoteMaterial(DaggerfallTerrain daggerfallTerrain, TerrainMaterialData terrainMaterialData)
         {
             Material tileMaterial = DaggerfallUnity.Instance.MaterialReader.GetTerrainTextureArrayMaterial(GetGroundArchive(terrainMaterialData.WorldClimate));
 
