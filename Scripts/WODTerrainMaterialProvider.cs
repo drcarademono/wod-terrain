@@ -3,12 +3,29 @@ using UnityEngine;
 using DaggerfallConnect.Arena2;
 using DaggerfallConnect;
 using DaggerfallWorkshop.Utility;
+using DaggerfallWorkshop.Game.Utility.ModSupport;
+using DaggerfallWorkshop.Utility.AssetInjection;
 using DaggerfallWorkshop;
 
 namespace WODTerrain
 {
     public abstract class WODTerrainMaterialProvider : ITerrainMaterialProvider
     {
+
+        public enum Climates
+        {
+            Ocean = 223,
+            Desert = 224,
+            Desert2 = 225, // seen in dak'fron
+            Mountain = 226,
+            Rainforest = 227,
+            Swamp = 228,
+            Subtropical = 229,
+            MountainWoods = 230,
+            Woodlands = 231,
+            HauntedWoodlands = 232 // not sure where this is?
+        }
+
         public abstract Material CreateMaterial();
 
         public abstract void PromoteMaterial(DaggerfallTerrain daggerfallTerrain, TerrainMaterialData terrainMaterialData);
@@ -30,16 +47,25 @@ namespace WODTerrain
         /// <returns>Parsed climate informations.</returns>
         protected virtual (int GroundArchive, DFLocation.ClimateSettings Settings, bool IsWinter) GetClimateInfo(int worldClimate)
         {
-            // Get current climate and ground archive
+            // Get current climate and ground archive using the provided method
             DFLocation.ClimateSettings climate = MapsFile.GetWorldClimateSettings(worldClimate);
             int groundArchive = climate.GroundArchive;
             bool isWinter = false;
+
+            // Check for winter season
             if (climate.ClimateType != DFLocation.ClimateBaseType.Desert &&
                 DaggerfallUnity.Instance.WorldTime.Now.SeasonValue == DaggerfallDateTime.Seasons.Winter)
             {
                 // Offset to snow textures
                 groundArchive++;
                 isWinter = true;
+            }
+
+            // Special handling for Subtropical climate
+            if (worldClimate == (int)Climates.Subtropical)
+            {
+                // Set the ground archive to 4 specifically for Subtropical climates
+                groundArchive = 4;
             }
 
             return (groundArchive, climate, isWinter);

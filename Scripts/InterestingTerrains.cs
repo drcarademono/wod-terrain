@@ -84,8 +84,10 @@ namespace Monobelisk
                 BasicRoadsUtils.Init();
 
             // Set WOD custom terrain material provider
-            DaggerfallUnity.Instance.TerrainMaterialProvider = new WODTilemapTerrainMaterialProvider();
-
+            if(WODTilemapTextureArrayTerrainMaterialProvider.IsSupported)
+                DaggerfallUnity.Instance.TerrainMaterialProvider = new WODTilemapTextureArrayTerrainMaterialProvider();
+            else                 
+                DaggerfallUnity.Instance.TerrainMaterialProvider = new WODTilemapTerrainMaterialProvider();
 
         }
 
