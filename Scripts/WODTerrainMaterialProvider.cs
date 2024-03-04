@@ -1,8 +1,10 @@
 using System;
+using System.Linq;
 using UnityEngine;
 using DaggerfallConnect.Arena2;
 using DaggerfallConnect;
 using DaggerfallWorkshop.Utility;
+using DaggerfallWorkshop.Game;
 using DaggerfallWorkshop.Game.Utility.ModSupport;
 using DaggerfallWorkshop.Utility.AssetInjection;
 using DaggerfallWorkshop;
@@ -66,13 +68,35 @@ namespace WODTerrain
             {
                 // Set the ground archive to 4 specifically for Subtropical climates
                 groundArchive = 4;
-            }
+            }v
             
             // Additional handling for Desert2 climate
             if (worldClimate == (int)Climates.Desert2)
             {
                 // Set the ground archive to 3 specifically for Desert2 climates
                 groundArchive = 3;
+            }
+
+            // New case for Mountain climate in Hammerfell regions
+            if (worldClimate == (int)Climates.Mountain)
+            {
+                // List of Hammerfell regions
+                string[] hammerfellRegions = new string[] { "Alik'r Desert", "Dragontail Mountains", "Dak'fron", "Lainlyn", "Tigonus", "Ephesus", "Santaki" };
+                string currentRegionName = GameManager.Instance.PlayerGPS.CurrentRegionName;
+
+                // Check if the current region is in Hammerfell
+                if (hammerfellRegions.Contains(currentRegionName))
+                {
+                    // Set the ground archive to 104 specifically for Mountain climates in Hammerfell
+                    groundArchive = 104;
+                }
+            }
+
+            // Special handling for HauntedWoodlands climate
+            if (worldClimate == (int)Climates.HauntedWoodlands)
+            {
+                // Set the ground archive to 304 specifically for HauntedWoodlands climates
+                groundArchive = 304;
             }
 
             return (groundArchive, climate, isWinter);
