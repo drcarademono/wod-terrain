@@ -52,51 +52,39 @@ namespace WODTerrain
             // Get current climate and ground archive using the provided method
             DFLocation.ClimateSettings climate = MapsFile.GetWorldClimateSettings(worldClimate);
             int groundArchive = climate.GroundArchive;
-            bool isWinter = false;
+            bool isWinter = DaggerfallUnity.Instance.WorldTime.Now.SeasonValue == DaggerfallDateTime.Seasons.Winter;
 
-            // Check for winter season
-            if (climate.ClimateType != DFLocation.ClimateBaseType.Desert &&
-                DaggerfallUnity.Instance.WorldTime.Now.SeasonValue == DaggerfallDateTime.Seasons.Winter)
+            // Handle winter season for climates that change during winter, excluding specific ones
+            if (isWinter && climate.ClimateType != DFLocation.ClimateBaseType.Desert &&
+                worldClimate != (int)Climates.Rainforest && 
+                worldClimate != (int)Climates.Subtropical && 
+                worldClimate != (int)Climates.Swamp && 
+                worldClimate != (int)Climates.Desert &&
+                worldClimate != (int)Climates.Desert2)
             {
-                // Offset to snow textures
+                // Default winter behavior (increment groundArchive), will be overridden for specific cases below
                 groundArchive++;
-                isWinter = true;
             }
 
-            // Special handling for Subtropical climate
-            if (worldClimate == (int)Climates.Subtropical)
+            // Adjust groundArchive based on specific climates
+            switch (worldClimate)
             {
-                // Set the ground archive to 4 specifically for Subtropical climates
-                groundArchive = 4;
-            }
-            
-            // Additional handling for Desert2 climate
-            if (worldClimate == (int)Climates.Desert2)
-            {
-                // Set the ground archive to 3 specifically for Desert2 climates
-                groundArchive = 3;
-            }
-
-            // New case for Mountain climate in Hammerfell regions
-            if (worldClimate == (int)Climates.Mountain)
-            {
-                // List of Hammerfell regions
-                string[] hammerfellRegions = new string[] { "Alik'r Desert", "Dragontail Mountains", "Dak'fron", "Lainlyn", "Tigonus", "Ephesus", "Santaki" };
-                string currentRegionName = GameManager.Instance.PlayerGPS.CurrentRegionName;
-
-                // Check if the current region is in Hammerfell
-                if (hammerfellRegions.Contains(currentRegionName))
-                {
-                    // Set the ground archive to 104 specifically for Mountain climates in Hammerfell
-                    groundArchive = 104;
-                }
-            }
-
-            // Special handling for HauntedWoodlands climate
-            if (worldClimate == (int)Climates.HauntedWoodlands)
-            {
-                // Set the ground archive to 304 specifically for HauntedWoodlands climates
-                groundArchive = 304;
+                case (int)Climates.Subtropical:
+                    groundArchive = 4; // No change in winter
+                    break;
+                case (int)Climates.Desert2:
+                    groundArchive = 3; // No change in winter
+                    break;
+                case (int)Climates.Mountain:
+                    string[] hammerfellRegions = new string[] { "Alik'r Desert", "Dragontail Mountains", "Dak'fron", "Lainlyn", "Tigonus", "Ephesus", "Santaki" };
+                    if (hammerfellRegions.Contains(GameManager.Instance.PlayerGPS.CurrentRegionName))
+                    {
+                        groundArchive = isWinter ? 103 : 104; // Special winter handling for Hammerfell Mountains
+                    }
+                    break;
+                case (int)Climates.HauntedWoodlands:
+                    groundArchive = isWinter ? 303 : 304; // Special winter handling for Haunted Woodlands
+                    break;
             }
 
             return (groundArchive, climate, isWinter);
