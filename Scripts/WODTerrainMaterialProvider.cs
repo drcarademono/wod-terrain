@@ -67,6 +67,13 @@ namespace WODTerrain
                 // Set the ground archive to 4 specifically for Subtropical climates
                 groundArchive = 4;
             }
+            
+            // Additional handling for Desert2 climate
+            if (worldClimate == (int)Climates.Desert2)
+            {
+                // Set the ground archive to 3 specifically for Desert2 climates
+                groundArchive = 3;
+            }
 
             return (groundArchive, climate, isWinter);
         }
