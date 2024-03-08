@@ -58,7 +58,6 @@ namespace WODTerrain
             if (isWinter && climate.ClimateType != DFLocation.ClimateBaseType.Desert &&
                 worldClimate != (int)Climates.Rainforest && 
                 worldClimate != (int)Climates.Subtropical && 
-                worldClimate != (int)Climates.Swamp && 
                 worldClimate != (int)Climates.Desert &&
                 worldClimate != (int)Climates.Desert2)
             {
