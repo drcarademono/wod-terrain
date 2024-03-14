@@ -81,6 +81,8 @@ namespace Monobelisk
         {
             if (CompatibilityUtils.BasicRoadsLoaded)
                 BasicRoadsUtils.Init();
+
+            DaggerfallUnity.Instance.TerrainTexturing = new InterestingTerrainTexturer();
         }
 
         private void OnDestroy()
