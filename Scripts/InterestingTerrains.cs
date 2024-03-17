@@ -69,7 +69,7 @@ namespace Monobelisk
         {
             DaggerfallUnity.Instance.TerrainSampler = new InterestingTerrainSampler();
 
-            DaggerfallUnity.Instance.TerrainTexturing = new InterestingTerrainTexturer();
+            //DaggerfallUnity.Instance.TerrainTexturing = new WOTerrainTexturing();
 
             DaggerfallTerrain.OnPromoteTerrainData += tileDataCache.UncacheTileData;
 
@@ -82,7 +82,7 @@ namespace Monobelisk
             if (CompatibilityUtils.BasicRoadsLoaded)
                 BasicRoadsUtils.Init();
 
-            DaggerfallUnity.Instance.TerrainTexturing = new InterestingTerrainTexturer();
+            DaggerfallUnity.Instance.TerrainTexturing = new WildernessOverhaul.WOTerrainTexturing(true, true);
         }
 
         private void OnDestroy()
