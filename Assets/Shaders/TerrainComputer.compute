@@ -538,7 +538,7 @@ float GetHeightSample(float2 id, out float mountainPart) {
     mountainPart = extraHeight + bumps;
     extraHeight *= (1.0 - locationWeight);//Default: 1.0
 
-    baseHeight += (extraHeight + bumps) * saturate(1 - roadWeight); // This can raise and lower ALL terrain
+    baseHeight += (extraHeight + bumps) * saturate(1.3 - roadWeight); // This can raise and lower ALL terrain
 
     return baseHeight;
 }
