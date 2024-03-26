@@ -62,7 +62,7 @@ float GetRoadSegmentWeight(float2 pos, float2 roadStart, float2 roadEnd) {
 
     // Determine the fade distance based on noise, similar to NearestRadialEdgePoint logic
     float baseFadeDist = 128.0; // Starting point for fade distance
-    float fadeDistVariation = 8.0; // How much noise affects fade distance
+    float fadeDistVariation = 1.0; // How much noise affects fade distance
     float fadeDist = baseFadeDist + baseFadeDist * fadeDistVariation * noise; // Apply noise influence
 
     // Calculate distance from the nearest road point to the position

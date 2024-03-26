@@ -474,12 +474,15 @@ float GetHeightSample(float2 id, out float mountainPart) {
     float wildernessWeight = bumpWeight;
     bumpWeight *= pow(locationWeight, 0.25);
 
-    float roadWeight = GetRoadWeight(pos);
-    locationWeight = max(locationWeight, roadWeight);
-
     float extraHeight, bumps;
     float baseHeight = GetBaseHeight(id.xy, extraHeight, bumps);
     bumps *= bumpWeight;
+
+    float roadWeight = GetRoadWeight(pos);
+    float roadFactor = (1.0 - smoothstep(0.04, 0.0, baseHeight));
+    roadFactor = (1.0 - smoothstep(1.0, 0.0, roadFactor));
+    roadWeight = roadWeight * roadFactor;
+    locationWeight = max(locationWeight, roadWeight);
 
     PerlinParams p;
     p.pos = pos;
