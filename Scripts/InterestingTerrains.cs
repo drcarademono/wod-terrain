@@ -19,6 +19,7 @@ namespace Monobelisk
         public static Texture2D biomeMap;
         public static Texture2D derivMap;
         public static Texture2D portMap;
+        public static Texture2D roadMap;
         public static Texture2D tileableNoise;
         public static ComputeShader csPrototype;
         public static ComputeShader mainHeightComputer;
@@ -48,6 +49,7 @@ namespace Monobelisk
             biomeMap = Mod.GetAsset<Texture2D>("daggerfall_heightmap");
             derivMap = Mod.GetAsset<Texture2D>("daggerfall_deriv_map");
             portMap = Mod.GetAsset<Texture2D>("daggerfall_port_map");
+            roadMap = Mod.GetAsset<Texture2D>("daggerfall_road_map");
             tileableNoise = Mod.GetAsset<Texture2D>("tileable_noise");
             csPrototype = Mod.GetAsset<ComputeShader>("TerrainComputer");
             mainHeightComputer = Mod.GetAsset<ComputeShader>("MainHeightmapComputer");
@@ -82,7 +84,7 @@ namespace Monobelisk
             if (CompatibilityUtils.BasicRoadsLoaded)
                 BasicRoadsUtils.Init();
 
-            DaggerfallUnity.Instance.TerrainTexturing = new WildernessOverhaul.WOTerrainTexturing(true, true);
+            //DaggerfallUnity.Instance.TerrainTexturing = new WildernessOverhaul.WOTerrainTexturing(true, true);
         }
 
         private void OnDestroy()

@@ -48,26 +48,34 @@ float2 NearestPointInLine(float2 pos, float2 lineStart, float2 lineEnd) {
 }
 
 float GetRoadSegmentWeight(float2 pos, float2 roadStart, float2 roadEnd) {
+    // Use NearestPointInLine as a base to find the nearest point on the road
     float2 roadPt = NearestPointInLine(pos, roadStart, roadEnd);
+
+    // Calculate directional vector and sample position for noise
     float2 dir = normalize(pos - roadPt);
-    float2 samplePos = roadPt + dir * 15.0;
+    float2 samplePos = roadPt + dir * 15.0; // Adjust as needed
     samplePos -= (floor(samplePos / terrainSize) * terrainSize);
     samplePos /= terrainSize;
 
-    /*float freq = 0.05;
-    float n1 = Perlin2D(samplePos * freq);
-    float n2 = Perlin2D(samplePos * freq * 0.5) * 0.7;
-    float noise = saturate((n1 + n2) * 0.5 + 0.5);*/
+    // Sample noise to adjust fade distance dynamically
     float noise = tileableNoise.SampleLevel(bm_linear_clamp_sampler, samplePos, 0);
 
-    float maxDist = lerp(20.0, 40.0, noise);
-    float thres = lerp(2.5, 3.0, noise);
+    // Determine the fade distance based on noise, similar to NearestRadialEdgePoint logic
+    float baseFadeDist = 128.0; // Starting point for fade distance
+    float fadeDistVariation = 8.0; // How much noise affects fade distance
+    float fadeDist = baseFadeDist + baseFadeDist * fadeDistVariation * noise; // Apply noise influence
 
+    // Calculate distance from the nearest road point to the position
     float dist = distance(roadPt, pos);
-    float w = saturate((dist - thres) / maxDist);
 
-    return 1.0 - w;
+    // Adjust the weight calculation using a dynamic fade distance and smooth transitions
+    float w = smoothstep(0.0, 1.0, 0.77 - clamp(dist / fadeDist, 0.0, 1.0));
+    w = pow(w, 2.0); // Apply squared curve for smoother falloff
+    //w = smoothstep(0.0, 1.0, w); // Use smoothstep for even smoother transition
+
+    return w;
 }
+
 
 float GetRoadWeightForMapPixel(float2 pos, int2 mpOffset) {
     int i = (mpOffset.x + 1) + (mpOffset.y + 1) * 3;

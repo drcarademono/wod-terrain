@@ -39,62 +39,67 @@ namespace Monobelisk.Compatibility
             //pathsData[streams] = GetPathData(streams);
         }
 
-        public static RoadData GetRoadData(int mapPixelX, int mapPixelY)
+ public static RoadData GetRoadData(int mapPixelX, int mapPixelY)
+{
+    var roadData = new RoadData
+    {
+        NW_NE_SW_SE = new Vector4[9],
+        N_E_S_W = new Vector4[9]
+    };
+
+    if (!CompatibilityUtils.BasicRoadsLoaded)
+        return roadData;
+
+    for (int x = -1; x <= 1; x++)
+    {
+        for (int y = -1; y <= 1; y++)
         {
-            var roadData = new RoadData
+            var mpx = mapPixelX + x;
+            var mpy = mapPixelY + y;
+
+            if (mpx < 0 || mpx >= MapsFile.MaxMapPixelX)
+                continue;
+            if (mpy < 0 || mpy >= MapsFile.MaxMapPixelY)
+                continue;
+
+            var i = mpx + mpy * MapsFile.MaxMapPixelX;
+            var si = (x + 1) + (y + 1) * 3;
+
+            roadData.NW_NE_SW_SE[si] = new Vector4()
             {
-                NW_NE_SW_SE = new Vector4[9],
-                N_E_S_W = new Vector4[9]
+                x = HasRoadPoint(i, NW) ? 1 : 0,
+                y = HasRoadPoint(i, NE) ? 1 : 0,
+                z = HasRoadPoint(i, SW) ? 1 : 0,
+                w = HasRoadPoint(i, SE) ? 1 : 0,
             };
 
-            if (!CompatibilityUtils.BasicRoadsLoaded)
-                return roadData;
-
-            for(int x = -1; x <= 1; x++)
+            roadData.N_E_S_W[si] = new Vector4()
             {
-                for(int y = -1; y <= 1; y++)
-                {
-                    var mpx = mapPixelX + x;
-                    var mpy = mapPixelY + y;
+                x = HasRoadPoint(i, N) ? 1 : 0,
+                y = HasRoadPoint(i, E) ? 1 : 0,
+                z = HasRoadPoint(i, S) ? 1 : 0,
+                w = HasRoadPoint(i, W) ? 1 : 0,
+            };
 
-                    if (mpx < 0 || mpx >= MapsFile.MaxMapPixelX)
-                        continue;
-                    if (mpy < 0 || mpy >= MapsFile.MaxMapPixelY)
-                        continue;
-
-                    var i = mpx + mpy * MapsFile.MaxMapPixelX;
-                    var si = (x + 1) + (y + 1) * 3;
-
-                    roadData.NW_NE_SW_SE[si] = new Vector4()
-                    {
-                        x = HasRoadPoint(i, NW) ? 1 : 0,
-                        y = HasRoadPoint(i, NE) ? 1 : 0,
-                        z = HasRoadPoint(i, SW) ? 1 : 0,
-                        w = HasRoadPoint(i, SE) ? 1 : 0,
-                    };
-
-                    roadData.N_E_S_W[si] = new Vector4()
-                    {
-                        x = HasRoadPoint(i, N) ? 1 : 0,
-                        y = HasRoadPoint(i, E) ? 1 : 0,
-                        z = HasRoadPoint(i, S) ? 1 : 0,
-                        w = HasRoadPoint(i, W) ? 1 : 0,
-                    };
-                }
-            }
-
-            return roadData;
+            // Add debug messages here to log the computed vectors
+            Debug.Log($"NW_NE_SW_SE[{si}]: {roadData.NW_NE_SW_SE[si]}");
+            Debug.Log($"N_E_S_W[{si}]: {roadData.N_E_S_W[si]}");
         }
+    }
+
+    return roadData;
+}
+
 
         private static bool HasRoadPoint(int i, byte direction)
         {
             var hasRoadPoint = false;
 
-            /*if ((pathsData[roads][i] & direction) != 0)
+            if ((pathsData[roads][i] & direction) != 0)
                 hasRoadPoint = true;
             if ((pathsData[tracks][i] & direction) != 0)
                 hasRoadPoint = true;
-            if (pathsData[rivers][i] % direction != 0)
+            /*if (pathsData[rivers][i] % direction != 0)
                 hasRoadPoint = true;
             if (pathsData[streams][i] % direction != 0)
                 hasRoadPoint = true;*/

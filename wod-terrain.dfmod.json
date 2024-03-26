@@ -41,7 +41,7 @@
         "Assets/Game/Mods/wod-terrain/Assets/Maps/daggerfall_deriv_map.png",
         "Assets/Game/Mods/wod-terrain/Assets/Maps/daggerfall_heightmap.png",
         "Assets/Game/Mods/wod-terrain/Assets/Maps/daggerfall_port_map.png",
-        "Assets/Game/Mods/wod-terrain/Scripts/WOTerrainTexturing.cs"
+        "Assets/Game/Mods/wod-terrain/Assets/Maps/daggerfall_road_map.png"
     ],
     "Dependencies": [
         {

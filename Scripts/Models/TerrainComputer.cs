@@ -186,6 +186,7 @@ namespace Monobelisk
             cs.SetTexture(k, "BiomeMap", InterestingTerrains.biomeMap);
             cs.SetTexture(k, "DerivMap", InterestingTerrains.derivMap);
             cs.SetTexture(k, "PortMap", InterestingTerrains.portMap);
+            cs.SetTexture(k, "RoadMap", InterestingTerrains.roadMap);
             cs.SetTexture(k, "tileableNoise", InterestingTerrains.tileableNoise);
             cs.SetFloat("originalHeight", Utility.GetOriginalTerrainHeight());
             cs.SetFloat("newHeight", Constants.TERRAIN_HEIGHT);
