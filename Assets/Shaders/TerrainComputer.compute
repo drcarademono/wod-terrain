@@ -479,10 +479,10 @@ float GetHeightSample(float2 id, out float mountainPart) {
     bumps *= bumpWeight;
 
     float roadWeight = GetRoadWeight(pos);
-    float roadFactor = (1.0 - smoothstep(0.04, 0.0, baseHeight));
-    roadFactor = (1.0 - smoothstep(1.0, 0.0, roadFactor));
-    roadWeight = roadWeight * roadFactor;
-    locationWeight = max(locationWeight, roadWeight);
+    //float roadFactor = (1.0 - smoothstep(0.04, 0.0, baseHeight));
+    //roadFactor = (1.0 - smoothstep(1.0, 0.0, roadFactor));
+    //roadWeight = roadWeight * roadFactor;
+    //locationWeight = max(locationWeight, roadWeight);
 
     PerlinParams p;
     p.pos = pos;
@@ -538,7 +538,7 @@ float GetHeightSample(float2 id, out float mountainPart) {
     mountainPart = extraHeight + bumps;
     extraHeight *= (1.0 - locationWeight);//Default: 1.0
 
-    baseHeight += extraHeight + bumps; // This can raise and lower ALL terrain
+    baseHeight += (extraHeight + bumps) * saturate(1 - roadWeight); // This can raise and lower ALL terrain
 
     return baseHeight;
 }
