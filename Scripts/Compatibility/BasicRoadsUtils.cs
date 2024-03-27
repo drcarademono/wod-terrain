@@ -82,8 +82,8 @@ namespace Monobelisk.Compatibility
             };
 
             // Add debug messages here to log the computed vectors
-            Debug.Log($"NW_NE_SW_SE[{si}]: {roadData.NW_NE_SW_SE[si]}");
-            Debug.Log($"N_E_S_W[{si}]: {roadData.N_E_S_W[si]}");
+            //Debug.Log($"NW_NE_SW_SE[{si}]: {roadData.NW_NE_SW_SE[si]}");
+            //Debug.Log($"N_E_S_W[{si}]: {roadData.N_E_S_W[si]}");
         }
     }
 
