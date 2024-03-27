@@ -23,6 +23,8 @@ Texture2D<float4> DerivMap;
 SamplerState dm_linear_clamp_sampler;
 
 Texture2D<float4> PortMap; //added to set locations for port cities
+Texture2D<float4> RoadMap; //added to set where road smoother functions
+
 SamplerState pm_point_clamp_sampler;
 
 #include "noises.cginc"
@@ -468,11 +470,14 @@ float GetHeightSample(float2 id, out float mountainPart) {
 
     float portHeight = PortMap.SampleLevel(dm_linear_clamp_sampler, portUv, 0).r;
     float seaHeight = PortMap.SampleLevel(dm_linear_clamp_sampler, portUv, 0).b;
+    float smoothRoads = RoadMap.SampleLevel(dm_linear_clamp_sampler, portUv, 0).r;
 
     float locationHeight, bumpWeight, portLoc;
     float locationWeight = LocationWeight(pos, portHeight, locationHeight, bumpWeight);
     float wildernessWeight = bumpWeight;
     bumpWeight *= pow(locationWeight, 0.25);
+
+    locationHeight = locationHeight * 0.75; // lower locations just the right amount
 
     float extraHeight, bumps;
     float baseHeight = GetBaseHeight(id.xy, extraHeight, bumps);
@@ -538,7 +543,7 @@ float GetHeightSample(float2 id, out float mountainPart) {
     mountainPart = extraHeight + bumps;
     extraHeight *= (1.0 - locationWeight);//Default: 1.0
 
-    baseHeight += (extraHeight + bumps) * saturate(1.3 - roadWeight); // This can raise and lower ALL terrain
+    baseHeight += (extraHeight + bumps) * saturate(1.3 - (roadWeight * smoothRoads)); // This can raise and lower ALL terrain
 
     return baseHeight;
 }

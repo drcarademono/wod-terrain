@@ -126,7 +126,7 @@ namespace Monobelisk
             var k = cs.FindKernel("TerrainComputer");
             uint _x, _y, _z;
             cs.GetKernelThreadGroupSizes(k, out _x, out _y, out _z);
-            
+
             int res = heightmapResolution + 1;
 
             DaggerfallUnity dfUnity;
@@ -255,7 +255,7 @@ namespace Monobelisk
             int i;
             for (i = 0; i < shm.Length; i++)
             {
-                
+
                 shm[i] = Convert.ToSingle(shmByte[i]);
             }
 
