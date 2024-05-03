@@ -16,7 +16,7 @@ namespace Monobelisk
 
         public override int Version
         {
-            get { return 4; }
+            get { return 5; }
         }
 
         public override bool IsLocationTerrainBlended()
