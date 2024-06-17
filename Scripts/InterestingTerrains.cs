@@ -1,7 +1,12 @@
+using DaggerfallConnect;
+using DaggerfallConnect.Arena2;
+using DaggerfallConnect.Utility;
 using DaggerfallWorkshop;
 using DaggerfallWorkshop.Game;
 using DaggerfallWorkshop.Game.Utility.ModSupport;
+using System;
 using System.Collections;
+using System.IO;
 using UnityEngine;
 using Monobelisk.Compatibility;
 
@@ -41,7 +46,6 @@ namespace Monobelisk
             ConsoleHandler.RegisterConsoleCommands();
         }
 
-
         private static void LoadAssetsAndParams()
         {
             Mod.LoadAllAssetsFromBundle();
@@ -63,6 +67,10 @@ namespace Monobelisk
             var paramIni = Mod.GetAsset<TextAsset>("interesting_terrains");
             var ini = new IniParser.Parser.IniDataParser().Parse(paramIni.text);
             instance.csParams.FromIniData(ini);
+
+            string customFilePath = Application.dataPath + "/Game/Mods/wod-terrain/WOODS.WLD";
+            TerrainComputer.InitializeCustomWoodsFile(customFilePath); // Initialize the custom WoodsFile
+
             TerrainComputer.InitializeWoodsFileHeightmap();
         }
         #endregion

@@ -14,7 +14,6 @@ using static DaggerfallWorkshop.StreamingWorld;
 
 namespace Monobelisk
 {
-
     public struct DoubleInt
     {
         public int Item1;
@@ -27,6 +26,7 @@ namespace Monobelisk
         public static byte[] alteredHeightmapBuffer;
         public static ComputeBuffer locationHeightData = new ComputeBuffer(289, sizeof(float) * 3);
         public static Texture2D baseHeightmap;
+        public static CustomWoodsFile CustomWoodsFileInstance { get; private set; }
 
         public Vector2 terrainPosition;
         public Vector2 terrainSize;
@@ -37,12 +37,23 @@ namespace Monobelisk
 
         private static readonly Dictionary<DoubleInt, Rect> locationRectCache = new Dictionary<DoubleInt, Rect>();
 
-        /// <summary>
-        /// Create a TerrainComputer for a specific mapData/terrain instance.
-        /// </summary>
-        /// <param name="mapPixelData"></param>
-        /// <param name="sampler"></param>
-        /// <returns></returns>
+        public static void InitializeCustomWoodsFile(string filePath)
+        {
+            if (CustomWoodsFileInstance == null)
+            {
+                CustomWoodsFileInstance = new CustomWoodsFile(filePath, FileUsage.UseMemory, true);
+            }
+        }
+
+        public static CustomWoodsFile GetCustomWoodsFile()
+        {
+            if (CustomWoodsFileInstance == null)
+            {
+                throw new InvalidOperationException("CustomWoodsFile is not initialized. Call InitializeCustomWoodsFile first.");
+            }
+            return CustomWoodsFileInstance;
+        }
+
         public static TerrainComputer Create(MapPixelData mapPixelData, InterestingTerrainSampler sampler)
         {
             var tSize = Utility.GetTerrainVertexSize();
@@ -60,12 +71,9 @@ namespace Monobelisk
             };
         }
 
-        /// <summary>
-        /// Replaces the heightmap buffer in the WoodsFile with a 1000x500 version of the Interesting Terrains heightmap.
-        /// </summary>
         public static void InitializeWoodsFileHeightmap()
         {
-            var woodsFile = DaggerfallUnity.Instance.ContentReader.WoodsFileReader;
+            var woodsFile = GetCustomWoodsFile();
             var original = woodsFile.Buffer;
             originalHeightmapBuffer = new byte[original.Length];
             for (int i = 0; i < original.Length; i++)
@@ -113,15 +121,8 @@ namespace Monobelisk
             locationHeightData.Dispose();
         }
 
-        /// <summary>
-        /// Initializes and runs a TerrainComputer GPU job, then processes the generated data.
-        /// </summary>
-        /// <param name="csPrototype"></param>
-        /// <param name="mapData"></param>
-        /// <param name="csParams"></param>
         public void DispatchAndProcess(ComputeShader csPrototype, ref MapPixelData mapData, TerrainComputerParams csParams)
         {
-            var woodsFile = DaggerfallUnity.Instance.ContentReader.WoodsFileReader;
             var cs = UnityEngine.Object.Instantiate(csPrototype);
             var k = cs.FindKernel("TerrainComputer");
             uint _x, _y, _z;
@@ -141,7 +142,7 @@ namespace Monobelisk
                 for (y = -searchSize; y <= searchSize; y++)
                 {
                     var mpx = mapData.mapPixelX + x;
-                    var mpy = mapData.mapPixelY + y;
+                    var mpy = mapData.mapPixelY + y; // Fixed the declaration of mpy
                     var key = new DoubleInt() { Item1 = mpx, Item2 = mpy };
 
                     if (locationRectCache.ContainsKey(key))
@@ -202,6 +203,7 @@ namespace Monobelisk
 
             csParams.ApplyToCS(cs);
 
+            var woodsFile = GetCustomWoodsFile();
             woodsFile.Buffer = originalHeightmapBuffer;
             HandleBaseMapSampleParams(ref mapData, ref cs, k);
             woodsFile.Buffer = alteredHeightmapBuffer;
@@ -226,7 +228,7 @@ namespace Monobelisk
 
             for (int x = 0; x < WoodsFile.MapWidth; x++)
             {
-                for(int y = 0; y < WoodsFile.MapHeight; y++)
+                for (int y = 0; y < WoodsFile.MapHeight; y++)
                 {
                     var idx = x + y * WoodsFile.MapWidth;
                     var sampleIdx = x + (WoodsFile.MapHeight - 1 - y) * WoodsFile.MapWidth;
@@ -250,17 +252,16 @@ namespace Monobelisk
             int mx = mapPixel.mapPixelX;
             int my = mapPixel.mapPixelY;
             int sDim = 4;
-            var shmByte = dfUnity.ContentReader.WoodsFileReader.GetHeightMapValuesRange1Dim(mx - 2, my - 2, sDim);
+            var shmByte = GetCustomWoodsFile().GetHeightMapValuesRange1Dim(mx - 2, my - 2, sDim);
             var shm = new float[shmByte.Length];
             int i;
             for (i = 0; i < shm.Length; i++)
             {
-
                 shm[i] = Convert.ToSingle(shmByte[i]);
             }
 
             // Convert & flatten large height samples 2d array into 1d native array.
-            byte[,] lhm2 = dfUnity.ContentReader.WoodsFileReader.GetLargeHeightMapValuesRange(mx - 1, my, 3);
+            byte[,] lhm2 = GetCustomWoodsFile().GetLargeHeightMapValuesRange(mx - 1, my, 3);
             float[] lhm = new float[lhm2.Length];
             int lDim = lhm2.GetLength(0);
             i = 0;
@@ -331,3 +332,4 @@ namespace Monobelisk
         }
     }
 }
+
