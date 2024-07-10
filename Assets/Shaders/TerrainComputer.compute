@@ -470,6 +470,7 @@ float GetHeightSample(float2 id, out float mountainPart) {
 
     float portHeight = PortMap.SampleLevel(dm_linear_clamp_sampler, portUv, 0).r;
     float seaHeight = PortMap.SampleLevel(dm_linear_clamp_sampler, portUv, 0).b;
+    float altHeight = PortMap.SampleLevel(dm_linear_clamp_sampler, portUv, 0).g;
     float smoothRoads = RoadMap.SampleLevel(dm_linear_clamp_sampler, portUv, 0).r;
 
     float locationHeight, bumpWeight, portLoc;
@@ -514,7 +515,7 @@ float GetHeightSample(float2 id, out float mountainPart) {
     //if (portHeight > 0.0) { // dock location setting
     float portLocationHeight = 0.021; // 0.0201 is lowest to still have grass and sand
     //} else {
-    float regLocationHeight = max(locationHeight + (BASEHEIGHT_MIN / 10000), 0.021); //carademono's kludge to get rid of craters, don't ask me why this works
+    float regLocationHeight = max(locationHeight + (BASEHEIGHT_MIN / 10000) + (altHeight * 0.1), 0.021); //carademono's kludge to get rid of craters, don't ask me why this works
     //}
 
 	if ( seaHeight > 0.0 ) { // Uses blue PortMap channel for sea level locations
