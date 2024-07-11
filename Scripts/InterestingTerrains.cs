@@ -68,7 +68,7 @@ namespace Monobelisk
             var ini = new IniParser.Parser.IniDataParser().Parse(paramIni.text);
             instance.csParams.FromIniData(ini);
 
-            string customFilePath = Application.dataPath + "/Game/Mods/wod-terrain/WOODS.WLD";
+            string customFilePath = Application.streamingAssetsPath + "/Terrain/WOODS.WLD";
             TerrainComputer.InitializeCustomWoodsFile(customFilePath); // Initialize the custom WoodsFile
 
             TerrainComputer.InitializeWoodsFileHeightmap();
