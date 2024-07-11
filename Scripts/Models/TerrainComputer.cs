@@ -26,7 +26,6 @@ namespace Monobelisk
         public static byte[] alteredHeightmapBuffer;
         public static ComputeBuffer locationHeightData = new ComputeBuffer(289, sizeof(float) * 3);
         public static Texture2D baseHeightmap;
-        public static CustomWoodsFile CustomWoodsFileInstance { get; private set; }
 
         public Vector2 terrainPosition;
         public Vector2 terrainSize;
@@ -36,23 +35,6 @@ namespace Monobelisk
         private InterestingTerrainSampler sampler;
 
         private static readonly Dictionary<DoubleInt, Rect> locationRectCache = new Dictionary<DoubleInt, Rect>();
-
-        public static void InitializeCustomWoodsFile(string filePath)
-        {
-            if (CustomWoodsFileInstance == null)
-            {
-                CustomWoodsFileInstance = new CustomWoodsFile(filePath, FileUsage.UseMemory, true);
-            }
-        }
-
-        public static CustomWoodsFile GetCustomWoodsFile()
-        {
-            if (CustomWoodsFileInstance == null)
-            {
-                throw new InvalidOperationException("CustomWoodsFile is not initialized. Call InitializeCustomWoodsFile first.");
-            }
-            return CustomWoodsFileInstance;
-        }
 
         public static TerrainComputer Create(MapPixelData mapPixelData, InterestingTerrainSampler sampler)
         {
@@ -73,7 +55,7 @@ namespace Monobelisk
 
         public static void InitializeWoodsFileHeightmap()
         {
-            var woodsFile = GetCustomWoodsFile();
+            var woodsFile = DaggerfallUnity.Instance.ContentReader.WoodsFileReader;
             var original = woodsFile.Buffer;
             originalHeightmapBuffer = new byte[original.Length];
             for (int i = 0; i < original.Length; i++)
@@ -123,6 +105,7 @@ namespace Monobelisk
 
         public void DispatchAndProcess(ComputeShader csPrototype, ref MapPixelData mapData, TerrainComputerParams csParams)
         {
+            var woodsFile = DaggerfallUnity.Instance.ContentReader.WoodsFileReader;
             var cs = UnityEngine.Object.Instantiate(csPrototype);
             var k = cs.FindKernel("TerrainComputer");
             uint _x, _y, _z;
@@ -142,7 +125,7 @@ namespace Monobelisk
                 for (y = -searchSize; y <= searchSize; y++)
                 {
                     var mpx = mapData.mapPixelX + x;
-                    var mpy = mapData.mapPixelY + y; // Fixed the declaration of mpy
+                    var mpy = mapData.mapPixelY + y;
                     var key = new DoubleInt() { Item1 = mpx, Item2 = mpy };
 
                     if (locationRectCache.ContainsKey(key))
@@ -189,7 +172,6 @@ namespace Monobelisk
             cs.SetTexture(k, "PortMap", InterestingTerrains.portMap);
             cs.SetTexture(k, "RoadMap", InterestingTerrains.roadMap);
             cs.SetTexture(k, "tileableNoise", InterestingTerrains.tileableNoise);
-            cs.SetFloat("originalHeight", Utility.GetOriginalTerrainHeight());
             cs.SetFloat("newHeight", Constants.TERRAIN_HEIGHT);
             cs.SetTexture(k, "mapPixelHeights", baseHeightmap);
             cs.SetBuffer(k, "heightmapBuffer", heightmapBuffers.heightmapBuffer);
@@ -203,7 +185,6 @@ namespace Monobelisk
 
             csParams.ApplyToCS(cs);
 
-            var woodsFile = GetCustomWoodsFile();
             woodsFile.Buffer = originalHeightmapBuffer;
             HandleBaseMapSampleParams(ref mapData, ref cs, k);
             woodsFile.Buffer = alteredHeightmapBuffer;
@@ -228,7 +209,7 @@ namespace Monobelisk
 
             for (int x = 0; x < WoodsFile.MapWidth; x++)
             {
-                for (int y = 0; y < WoodsFile.MapHeight; y++)
+                for(int y = 0; y < WoodsFile.MapHeight; y++)
                 {
                     var idx = x + y * WoodsFile.MapWidth;
                     var sampleIdx = x + (WoodsFile.MapHeight - 1 - y) * WoodsFile.MapWidth;
@@ -252,22 +233,62 @@ namespace Monobelisk
             int mx = mapPixel.mapPixelX;
             int my = mapPixel.mapPixelY;
             int sDim = 4;
-            var shmByte = GetCustomWoodsFile().GetHeightMapValuesRange1Dim(mx - 2, my - 2, sDim);
+
+            // Replace with all zero values
+            Byte[] GetHeightMapValuesRange1Dim(int mapPixelX, int mapPixelY, int dim)
+            {
+                Byte[] dstData = new Byte[dim * dim];
+                for (int y = 0; y < dim; y++)
+                {
+                    for (int x = 0; x < dim; x++)
+                    {
+                        dstData[x + (y * dim)] = 255;
+                    }
+                }
+                return dstData;
+            }
+
+            Byte[,] GetLargeHeightMapValuesRange(int mapPixelX, int mapPixelY, int dim)
+            {
+                const int len = 3;
+                Byte[,] dstData = new Byte[dim * len, dim * len];
+                for (int y = 0; y < dim; y++)
+                {
+                    for (int x = 0; x < dim; x++)
+                    {
+                        int startX = x * len;
+                        int startY = y * len;
+                        for (int iy = 0; iy < len; iy++)
+                        {
+                            for (int ix = 0; ix < len; ix++)
+                            {
+                                dstData[startX + ix, startY + iy] = 255;
+                            }
+                        }
+                    }
+                }
+                return dstData;
+            }
+
+            // Use adapted methods
+            var shmByte = GetHeightMapValuesRange1Dim(mx - 2, my - 2, sDim);
             var shm = new float[shmByte.Length];
-            int i;
-            for (i = 0; i < shm.Length; i++)
+            for (int i = 0; i < shm.Length; i++)
             {
                 shm[i] = Convert.ToSingle(shmByte[i]);
             }
 
-            // Convert & flatten large height samples 2d array into 1d native array.
-            byte[,] lhm2 = GetCustomWoodsFile().GetLargeHeightMapValuesRange(mx - 1, my, 3);
+            byte[,] lhm2 = GetLargeHeightMapValuesRange(mx - 1, my, 3);
             float[] lhm = new float[lhm2.Length];
             int lDim = lhm2.GetLength(0);
-            i = 0;
+            int idx = 0;
             for (int y = 0; y < lDim; y++)
+            {
                 for (int x = 0; x < lDim; x++)
-                    lhm[i++] = Convert.ToSingle(lhm2[x, y]);
+                {
+                    lhm[idx++] = Convert.ToSingle(lhm2[x, y]);
+                }
+            }
 
             // Extract height samples for all chunks
             int hDim = sampler.HeightmapDimension;

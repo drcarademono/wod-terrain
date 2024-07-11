@@ -8,7 +8,7 @@ RWStructuredBuffer<float> heightmapBuffer;
 RWStructuredBuffer<float> rawNoise;
 RWStructuredBuffer<int> tilemapData;
 RWStructuredBuffer<float3> locationHeightData;
-float avg, originalHeight, newHeight;
+float avg, newHeight;
 StructuredBuffer<int> lookupTable;
 StructuredBuffer<int> prototypes;
 Texture2D<float4> mapPixelHeights;
