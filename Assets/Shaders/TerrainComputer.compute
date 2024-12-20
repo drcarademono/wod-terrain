@@ -508,15 +508,10 @@ float GetHeightSample(float2 id, out float mountainPart) {
 
     float portLocationWeight;
 
-    if (portHeight > 0.0) { // dock location setting
         portLocationWeight = PortLocationWeight(pos, portHeight, locationHeight, bumpWeight);
-    }
 
-    //if (portHeight > 0.0) { // dock location setting
     float portLocationHeight = 0.021; // 0.0201 is lowest to still have grass and sand
-    //} else {
     float regLocationHeight = max(locationHeight + (BASEHEIGHT_MIN / 10000) + (altHeight * 0.1), 0.021); //carademono's kludge to get rid of craters, don't ask me why this works
-    //}
 
 	if ( seaHeight > 0.0 ) { // Uses blue PortMap channel for sea level locations
 		locationHeight = 0;
@@ -524,13 +519,11 @@ float GetHeightSample(float2 id, out float mountainPart) {
     	locationHeight = lerp(regLocationHeight, portLocationHeight, portLerp);
 	}
 
-    if ( portHeight > 0.0 && baseHeight <= 0.021 ) {
+    if ( baseHeight <= 0.021 ) {
         //baseHeight = lerp(baseHeight, locationHeight, portLocationWeight);
         float baseHeight1 = lerp(baseHeight, locationHeight, locationWeight);
         float baseHeight2 = lerp(baseHeight, locationHeight, portLocationWeight);
         baseHeight = lerp(baseHeight1, baseHeight2, portLerp);
-        //baseHeight = portHeight / 10;
-        //baseHeight = 0.0;
     } else {
         baseHeight = lerp(baseHeight, locationHeight, locationWeight);
     }
