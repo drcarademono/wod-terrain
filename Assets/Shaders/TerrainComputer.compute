@@ -300,11 +300,11 @@ float LocationWeight(float2 pos, float portHeight, out float basemapHeight, out 
         float2 uv = saturate(locCenter / (terrainSize * float2(TERRAIN_X, TERRAIN_Y))) + uvOffset;
         float baseHeight = mapPixelHeights.SampleLevel(dm_linear_clamp_sampler, uv, 0).r;
 
+        float portLerp = saturate(portHeight * 10);
+
         float fadeDist = 64.0; //slope of terrain near locations. Default: 32
 
         float2 nearestEdgeNarrow;
-
-        float portLerp = saturate(portHeight * 10);
 
         float2 nearestEdge;
         float2 nearestEdgeRect;
@@ -390,17 +390,11 @@ float PortLocationWeight(float2 pos, float portHeight, out float basemapHeight, 
         float2 uv = saturate(locCenter / (terrainSize * float2(TERRAIN_X, TERRAIN_Y))) + uvOffset;
         float baseHeight = mapPixelHeights.SampleLevel(dm_linear_clamp_sampler, uv, 0).r;
 
-        float fadeDist;
+        float portLerp = saturate(portHeight * 10);
 
-        //if (portHeight > 0.0) {
-            fadeDist = 3.0; //slope of terrain near locations. Default: 32
-        //} else {
-        //    fadeDist = 64.0; //slope of terrain near locations. Default: 32
-        //}
+        float fadeDist = lerp(64.0, 3.0, portLerp);
 
         float2 nearestEdgeNarrow;
-
-        float portLerp = saturate(portHeight * 10);
 
         float2 nearestEdge;
         float2 nearestEdgeRect;
