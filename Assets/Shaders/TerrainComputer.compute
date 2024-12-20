@@ -304,12 +304,17 @@ float LocationWeight(float2 pos, float portHeight, out float basemapHeight, out 
 
         float2 nearestEdgeNarrow;
 
+        float portLerp = saturate(portHeight * 10);
+
         float2 nearestEdge;
-        if (portHeight > 0.0) {
-            nearestEdge = NearestRectangularEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
-        } else {
-            nearestEdge = NearestRadialEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
-        }
+        float2 nearestEdgeRect;
+        float2 nearestEdgeRad;
+
+        nearestEdgeRect = NearestRectangularEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
+
+        nearestEdgeRad = NearestRadialEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
+
+    	nearestEdge = lerp(nearestEdgeRad, nearestEdgeRect, portLerp);
 
         PerlinParams noiseParams = PerlinDune(nearestEdgeNarrow);
         noiseParams.amplitude = 1.0;
@@ -395,12 +400,17 @@ float PortLocationWeight(float2 pos, float portHeight, out float basemapHeight, 
 
         float2 nearestEdgeNarrow;
 
+        float portLerp = saturate(portHeight * 10);
+
         float2 nearestEdge;
-        if (portHeight > 0.0) {
-            nearestEdge = NearestRectangularEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
-        } else {
-            nearestEdge = NearestRadialEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
-        }
+        float2 nearestEdgeRect;
+        float2 nearestEdgeRad;
+
+        nearestEdgeRect = NearestRectangularEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
+
+        nearestEdgeRad = NearestRadialEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
+
+    	nearestEdge = lerp(nearestEdgeRad, nearestEdgeRect, portLerp);
 
         PerlinParams noiseParams = PerlinDune(nearestEdgeNarrow);
         noiseParams.amplitude = 1.0;
