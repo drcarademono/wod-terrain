@@ -96,7 +96,7 @@ namespace Monobelisk
 
             Debug.Log($"CopyToNative called. Source size: {sourceSize}x{sourceSize}, Target size: {targetSize}x{targetSize}");
 
-            // Copy every 4th index
+            // Copy every 4th index directly
             for (int y = 0; y < sourceSize; y++)
             {
                 for (int x = 0; x < sourceSize; x++)
@@ -108,43 +108,38 @@ namespace Monobelisk
                 }
             }
 
-            // Interpolate the remaining indices
+            // Interpolate remaining indices
             for (int y = 0; y < targetSize; y++)
             {
+                int y0 = (y / step) * step;
+                int y1 = Mathf.Clamp(y0 + step, 0, targetSize - 1);
+                float ty = (float)(y - y0) / step;
+
                 for (int x = 0; x < targetSize; x++)
                 {
-                    if (x % step != 0 || y % step != 0)
-                    {
-                        target[y * targetSize + x] = InterpolateValue(target, targetSize, x, y, step);
-                    }
+                    if (x % step == 0 && y % step == 0)
+                        continue; // Skip already calculated indices
+
+                    int x0 = (x / step) * step;
+                    int x1 = Mathf.Clamp(x0 + step, 0, targetSize - 1);
+                    float tx = (float)(x - x0) / step;
+
+                    // Precompute weights
+                    float w00 = (1 - tx) * (1 - ty);
+                    float w10 = tx * (1 - ty);
+                    float w01 = (1 - tx) * ty;
+                    float w11 = tx * ty;
+
+                    // Fetch the four nearest calculated values
+                    float c00 = target[y0 * targetSize + x0];
+                    float c10 = target[y0 * targetSize + x1];
+                    float c01 = target[y1 * targetSize + x0];
+                    float c11 = target[y1 * targetSize + x1];
+
+                    // Apply precomputed weights
+                    target[y * targetSize + x] = w00 * c00 + w10 * c10 + w01 * c01 + w11 * c11;
                 }
             }
-        }
-
-        private static float InterpolateValue(NativeArray<float> target, int targetSize, int x, int y, int step)
-        {
-            // Find the nearest calculated indices
-            int x0 = (x / step) * step;
-            int x1 = Mathf.Clamp(x0 + step, 0, targetSize - 1);
-            int y0 = (y / step) * step;
-            int y1 = Mathf.Clamp(y0 + step, 0, targetSize - 1);
-
-            // Calculate interpolation weights
-            float tx = (float)(x - x0) / step;
-            float ty = (float)(y - y0) / step;
-
-            // Fetch the four nearest calculated values
-            float c00 = target[y0 * targetSize + x0];
-            float c10 = target[y0 * targetSize + x1];
-            float c01 = target[y1 * targetSize + x0];
-            float c11 = target[y1 * targetSize + x1];
-
-            // Perform bilinear interpolation
-            return Mathf.Lerp(
-                Mathf.Lerp(c00, c10, tx),
-                Mathf.Lerp(c01, c11, tx),
-                ty
-            );
         }
 
         private static float[,] To2D(NativeArray<float> values, int res)
