@@ -4,6 +4,15 @@ RWStructuredBuffer<float> sourceHeightmap;
 RWStructuredBuffer<float> targetHeightmap;
 int resolution; // Both source and target resolution
 
+// Optimized cubic interpolation using Catmull-Rom spline coefficients
+float CubicInterpolateOptimized(float p0, float p1, float p2, float p3, float t)
+{
+    float a = -0.5 * p0 + 1.5 * p1 - 1.5 * p2 + 0.5 * p3;
+    float b = p0 - 2.5 * p1 + 2.0 * p2 - 0.5 * p3;
+    float c = -0.5 * p0 + 0.5 * p2;
+    return ((a * t + b) * t + c) * t + p1; // Combined cubic formula
+}
+
 [numthreads(8, 8, 1)]
 void InterpolateHeightmap(uint3 id : SV_DispatchThreadID)
 {
@@ -20,28 +29,58 @@ void InterpolateHeightmap(uint3 id : SV_DispatchThreadID)
         return;
     }
 
-    // Identify the nearest valid indices for interpolation
-    int x0 = (x / 4) * 4;                       // Nearest multiple of 4 to the left
-    int x1 = min(x0 + 4, resolution - 1);       // Nearest multiple of 4 to the right
-    int y0 = (y / 4) * 4;                       // Nearest multiple of 4 above
-    int y1 = min(y0 + 4, resolution - 1);       // Nearest multiple of 4 below
+    // Identify the nearest 4x4 grid indices for interpolation
+    int x1 = (x / 4) * 4;                       // Nearest multiple of 4 to the left
+    int y1 = (y / 4) * 4;                       // Nearest multiple of 4 above
 
-    // Adjust interpolation weights for boundaries
-    float tx = x0 == x1 ? 0.0 : float(x - x0) / float(x1 - x0); // Horizontal weight
-    float ty = y0 == y1 ? 0.0 : float(y - y0) / float(y1 - y0); // Vertical weight
+    // Get boundaries for the 4x4 grid
+    int x0 = max(x1 - 4, 0);                    // One step left of x1
+    int x2 = min(x1 + 4, resolution - 1);       // One step right of x1
+    int x3 = min(x1 + 8, resolution - 1);       // Two steps right of x1
 
-    // Fetch the four nearest precomputed values, handling boundaries
-    float c00 = sourceHeightmap[y0 * resolution + x0]; // Top-left
-    float c10 = x0 == x1 ? c00 : sourceHeightmap[y0 * resolution + x1]; // Top-right
-    float c01 = y0 == y1 ? c00 : sourceHeightmap[y1 * resolution + x0]; // Bottom-left
-    float c11 = (x0 == x1 || y0 == y1) ? c00 : sourceHeightmap[y1 * resolution + x1]; // Bottom-right
+    int y0 = max(y1 - 4, 0);                    // One step above y1
+    int y2 = min(y1 + 4, resolution - 1);       // One step below y1
+    int y3 = min(y1 + 8, resolution - 1);       // Two steps below y1
 
-    // Perform bilinear interpolation
-    float interpolatedValue = lerp(
-        lerp(c00, c10, tx), // Horizontal interpolation (top row)
-        lerp(c01, c11, tx), // Horizontal interpolation (bottom row)
-        ty                  // Vertical interpolation
+    // Calculate interpolation weights
+    float tx = float(x - x1) / 4.0;             // Horizontal weight
+    float ty = float(y - y1) / 4.0;             // Vertical weight
+
+    // Fetch the 4x4 grid of values
+    float row0 = CubicInterpolateOptimized(
+        sourceHeightmap[y0 * resolution + x0],
+        sourceHeightmap[y0 * resolution + x1],
+        sourceHeightmap[y0 * resolution + x2],
+        sourceHeightmap[y0 * resolution + x3],
+        tx
     );
+
+    float row1 = CubicInterpolateOptimized(
+        sourceHeightmap[y1 * resolution + x0],
+        sourceHeightmap[y1 * resolution + x1],
+        sourceHeightmap[y1 * resolution + x2],
+        sourceHeightmap[y1 * resolution + x3],
+        tx
+    );
+
+    float row2 = CubicInterpolateOptimized(
+        sourceHeightmap[y2 * resolution + x0],
+        sourceHeightmap[y2 * resolution + x1],
+        sourceHeightmap[y2 * resolution + x2],
+        sourceHeightmap[y2 * resolution + x3],
+        tx
+    );
+
+    float row3 = CubicInterpolateOptimized(
+        sourceHeightmap[y3 * resolution + x0],
+        sourceHeightmap[y3 * resolution + x1],
+        sourceHeightmap[y3 * resolution + x2],
+        sourceHeightmap[y3 * resolution + x3],
+        tx
+    );
+
+    // Interpolate vertically in a single step
+    float interpolatedValue = CubicInterpolateOptimized(row0, row1, row2, row3, ty);
 
     // Write the interpolated value to the target
     targetHeightmap[y * resolution + x] = interpolatedValue;
