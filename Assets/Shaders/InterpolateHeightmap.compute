@@ -1,0 +1,49 @@
+#pragma kernel InterpolateHeightmap
+
+RWStructuredBuffer<float> sourceHeightmap;
+RWStructuredBuffer<float> targetHeightmap;
+int resolution; // Both source and target resolution
+
+[numthreads(8, 8, 1)]
+void InterpolateHeightmap(uint3 id : SV_DispatchThreadID)
+{
+    int x = id.x;
+    int y = id.y;
+
+    // Skip out-of-bounds threads
+    if (x >= resolution || y >= resolution) return;
+
+    // Copy precomputed values for multiples of 4
+    if ((x % 4 == 0) && (y % 4 == 0))
+    {
+        targetHeightmap[y * resolution + x] = sourceHeightmap[y * resolution + x];
+        return;
+    }
+
+    // Identify the nearest valid indices for interpolation
+    int x0 = (x / 4) * 4;                       // Nearest multiple of 4 to the left
+    int x1 = min(x0 + 4, resolution - 1);       // Nearest multiple of 4 to the right
+    int y0 = (y / 4) * 4;                       // Nearest multiple of 4 above
+    int y1 = min(y0 + 4, resolution - 1);       // Nearest multiple of 4 below
+
+    // Adjust interpolation weights for boundaries
+    float tx = x0 == x1 ? 0.0 : float(x - x0) / float(x1 - x0); // Horizontal weight
+    float ty = y0 == y1 ? 0.0 : float(y - y0) / float(y1 - y0); // Vertical weight
+
+    // Fetch the four nearest precomputed values, handling boundaries
+    float c00 = sourceHeightmap[y0 * resolution + x0]; // Top-left
+    float c10 = x0 == x1 ? c00 : sourceHeightmap[y0 * resolution + x1]; // Top-right
+    float c01 = y0 == y1 ? c00 : sourceHeightmap[y1 * resolution + x0]; // Bottom-left
+    float c11 = (x0 == x1 || y0 == y1) ? c00 : sourceHeightmap[y1 * resolution + x1]; // Bottom-right
+
+    // Perform bilinear interpolation
+    float interpolatedValue = lerp(
+        lerp(c00, c10, tx), // Horizontal interpolation (top row)
+        lerp(c01, c11, tx), // Horizontal interpolation (bottom row)
+        ty                  // Vertical interpolation
+    );
+
+    // Write the interpolated value to the target
+    targetHeightmap[y * resolution + x] = interpolatedValue;
+}
+

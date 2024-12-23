@@ -92,54 +92,59 @@ namespace Monobelisk
         {
             int sourceSize = (int)Mathf.Sqrt(source.Length); // e.g., 33 if heightmapResolution is 32
             int targetSize = (int)Mathf.Sqrt(target.Length); // e.g., 129 if heightmapResolution is 128
-            int step = 4; // We calculate every 4th index
 
-            Debug.Log($"CopyToNative called. Source size: {sourceSize}x{sourceSize}, Target size: {targetSize}x{targetSize}");
+            Debug.Log($"CopyToNative using Compute Shader. Source size: {sourceSize}x{sourceSize}, Target size: {targetSize}x{targetSize}");
 
-            // Copy every 4th index directly
-            for (int y = 0; y < sourceSize; y++)
+            // Ensure the compute shader is loaded
+            ComputeShader computeShader = InterestingTerrains.interpolateHeightmapShader;
+            if (computeShader == null)
             {
-                for (int x = 0; x < sourceSize; x++)
-                {
-                    if (x % step == 0 && y % step == 0)
-                    {
-                        target[y * targetSize + x] = source[y * sourceSize + x];
-                    }
-                }
+                Debug.LogError("Failed to access TerrainComputer compute shader. Ensure it's correctly loaded.");
+                return;
             }
 
-            // Interpolate remaining indices
-            for (int y = 0; y < targetSize; y++)
+            // Initialize ComputeBuffers
+            ComputeBuffer sourceBuffer = new ComputeBuffer(source.Length, sizeof(float));
+            ComputeBuffer targetBuffer = new ComputeBuffer(target.Length, sizeof(float));
+
+            // Set data to the source buffer
+            sourceBuffer.SetData(source);
+
+            // Set shader parameters
+            int kernel = computeShader.FindKernel("InterpolateHeightmap");
+            if (kernel < 0)
             {
-                int y0 = (y / step) * step;
-                int y1 = Mathf.Clamp(y0 + step, 0, targetSize - 1);
-                float ty = (float)(y - y0) / step;
-
-                for (int x = 0; x < targetSize; x++)
-                {
-                    if (x % step == 0 && y % step == 0)
-                        continue; // Skip already calculated indices
-
-                    int x0 = (x / step) * step;
-                    int x1 = Mathf.Clamp(x0 + step, 0, targetSize - 1);
-                    float tx = (float)(x - x0) / step;
-
-                    // Precompute weights
-                    float w00 = (1 - tx) * (1 - ty);
-                    float w10 = tx * (1 - ty);
-                    float w01 = (1 - tx) * ty;
-                    float w11 = tx * ty;
-
-                    // Fetch the four nearest calculated values
-                    float c00 = target[y0 * targetSize + x0];
-                    float c10 = target[y0 * targetSize + x1];
-                    float c01 = target[y1 * targetSize + x0];
-                    float c11 = target[y1 * targetSize + x1];
-
-                    // Apply precomputed weights
-                    target[y * targetSize + x] = w00 * c00 + w10 * c10 + w01 * c01 + w11 * c11;
-                }
+                Debug.LogError("Failed to find kernel 'InterpolateHeightmap' in compute shader.");
+                sourceBuffer.Dispose();
+                targetBuffer.Dispose();
+                return;
             }
+
+            computeShader.SetBuffer(kernel, "sourceHeightmap", sourceBuffer);
+            computeShader.SetBuffer(kernel, "targetHeightmap", targetBuffer);
+            computeShader.SetInt("resolution", targetSize); // Use target size as both source and target have the same resolution
+            computeShader.SetInt("sourceSize", sourceSize);
+            computeShader.SetInt("targetSize", targetSize);
+
+            // Dispatch shader
+            int threadGroupSize = 8;
+            computeShader.Dispatch(kernel, Mathf.CeilToInt((float)targetSize / threadGroupSize), Mathf.CeilToInt((float)targetSize / threadGroupSize), 1);
+
+            // Retrieve data from target buffer
+            float[] tempTarget = new float[target.Length];
+            targetBuffer.GetData(tempTarget);
+
+            // Copy data to the NativeArray
+            for (int i = 0; i < target.Length; i++)
+            {
+                target[i] = tempTarget[i];
+            }
+
+            // Cleanup
+            sourceBuffer.Dispose();
+            targetBuffer.Dispose();
+
+            Debug.Log("CopyToNative completed successfully using Compute Shader.");
         }
 
         private static float[,] To2D(NativeArray<float> values, int res)
