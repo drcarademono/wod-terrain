@@ -546,23 +546,40 @@ float GetHeightSample(float2 id, out float mountainPart) {
     return baseHeight;
 }
 
-
 void HeightmapComputation(int3 id, int i) {
     int rnIndex = id.x + id.y * (heightmapResolution + 1);
 
-    float2 tileUv = float2(id.xy) / (heightmapResolution - 1);
+    // Compute heights for:
+    // - First indices (x == 0 || y == 0)
+    // - Multiples of 4
+    // - Final indices (x == heightmapResolution || y == heightmapResolution)
+    if (!((id.x % 4 == 0 || id.x == 0 || id.x == heightmapResolution) &&
+          (id.y % 4 == 0 || id.y == 0 || id.y == heightmapResolution))) {
+        // Skip computation for non-matching indices
+        rawNoise[rnIndex] = 0.0;
 
+        if (id.x < heightmapResolution && id.y < heightmapResolution) {
+            heightmapBuffer[i] = 0.0;
+        }
+        return; // Exit early for skipped indices
+    }
+
+    // Calculate UVs and positions for the terrain
+    float2 tileUv = float2(id.xy) / (heightmapResolution - 1);
     float2 tp = terrainPosition;
 
     float2 worldPos = tp + tileUv * terrainSize;
     float2 worldUv = worldPos / (terrainSize * float2(TERRAIN_X, TERRAIN_Y));
 
+    // Perform height sampling
     float mountainPart;
     float newVal = GetHeightSample(id.xy, mountainPart);
 
+    // Enforce minimum height
     float minHeight = BASEHEIGHT_MIN / newHeight;
     float height = max(minHeight, newVal);
 
+    // Store the computed height in rawNoise and heightmapBuffer
     rawNoise[rnIndex] = height;
 
     if (id.x < heightmapResolution && id.y < heightmapResolution) {

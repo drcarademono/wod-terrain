@@ -90,10 +90,86 @@ namespace Monobelisk
 
         private static void CopyToNative(float[] source, ref NativeArray<float> target)
         {
-            for(int i = 0; i < target.Length; i++)
+            int sourceSize = (int)Mathf.Sqrt(source.Length); // e.g., 33 if heightmapResolution is 32
+            int targetSize = (int)Mathf.Sqrt(target.Length); // e.g., 129 if heightmapResolution is 128
+            int step = 4; // We calculate every 4th index
+
+            Debug.Log($"CopyToNative called. Source size: {sourceSize}x{sourceSize}, Target size: {targetSize}x{targetSize}");
+
+            // Copy every 4th index
+            for (int y = 0; y < sourceSize; y++)
             {
-                target[i] = source[i];
+                for (int x = 0; x < sourceSize; x++)
+                {
+                    if (x % step == 0 && y % step == 0)
+                    {
+                        target[y * targetSize + x] = source[y * sourceSize + x];
+                    }
+                }
             }
+
+            // Interpolate the remaining indices using bicubic filtering
+            for (int y = 0; y < targetSize; y++)
+            {
+                for (int x = 0; x < targetSize; x++)
+                {
+                    if (x % step != 0 || y % step != 0)
+                    {
+                        target[y * targetSize + x] = BicubicInterpolate(target, targetSize, x, y, step);
+                    }
+                }
+            }
+        }
+
+        private static float BicubicInterpolate(NativeArray<float> target, int targetSize, int x, int y, int step)
+        {
+            // Get the grid cell coordinates (top-left corner of the 4x4 block)
+            int gridX = (x / step) * step;
+            int gridY = (y / step) * step;
+
+            // Interpolation weights
+            float tx = (float)(x - gridX) / step;
+            float ty = (float)(y - gridY) / step;
+
+            // Fetch the 4x4 neighborhood
+            float[,] neighborhood = new float[4, 4];
+            for (int j = -1; j <= 2; j++)
+            {
+                for (int i = -1; i <= 2; i++)
+                {
+                    int sampleX = Mathf.Clamp(gridX + i * step, 0, targetSize - 1);
+                    int sampleY = Mathf.Clamp(gridY + j * step, 0, targetSize - 1);
+                    neighborhood[j + 1, i + 1] = target[sampleY * targetSize + sampleX];
+                }
+            }
+
+            // Perform bicubic interpolation
+            return BicubicKernel(neighborhood, tx, ty);
+        }
+
+        private static float BicubicKernel(float[,] values, float tx, float ty)
+        {
+            float[] arrX = new float[4];
+
+            // Apply cubic interpolation along the x-axis for each row
+            for (int i = 0; i < 4; i++)
+            {
+                arrX[i] = CubicInterpolate(values[i, 0], values[i, 1], values[i, 2], values[i, 3], tx);
+            }
+
+            // Apply cubic interpolation along the y-axis
+            return CubicInterpolate(arrX[0], arrX[1], arrX[2], arrX[3], ty);
+        }
+
+        private static float CubicInterpolate(float v0, float v1, float v2, float v3, float t)
+        {
+            // Cubic Hermite spline interpolation
+            float a = -0.5f * v0 + 1.5f * v1 - 1.5f * v2 + 0.5f * v3;
+            float b = v0 - 2.5f * v1 + 2f * v2 - 0.5f * v3;
+            float c = -0.5f * v0 + 0.5f * v2;
+            float d = v1;
+
+            return a * t * t * t + b * t * t + c * t + d;
         }
 
         private static float[,] To2D(NativeArray<float> values, int res)
