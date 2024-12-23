@@ -15,6 +15,9 @@ namespace Monobelisk
         const byte grass = 2;
         const byte stone = 3;
 
+        public enum InterpolationMode { Bilinear, Bicubic }
+        public static InterpolationMode CurrentInterpolationMode = InterpolationMode.Bicubic;
+
         /// <summary>
         /// Creates and inits a collection of ComputeBuffers for use with the Interesting Terrains terrain sampler.
         /// </summary>
@@ -125,6 +128,8 @@ namespace Monobelisk
             computeShader.SetInt("resolution", targetSize); // Use target size as both source and target have the same resolution
             computeShader.SetInt("sourceSize", sourceSize);
             computeShader.SetInt("targetSize", targetSize);
+            computeShader.SetInt("mode", CurrentInterpolationMode == InterpolationMode.Bilinear ? 0 : 1);
+
 
             // Dispatch shader
             int threadGroupSize = 8;
