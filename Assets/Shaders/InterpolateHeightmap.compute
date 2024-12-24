@@ -5,6 +5,7 @@ RWStructuredBuffer<float> sourceHeightmap;
 RWStructuredBuffer<float> targetHeightmap;
 int resolution; // Both source and target resolution
 int mode;       // 0 for bilinear, 1 for bicubic
+int terrainStep;
 
 // Optimized cubic interpolation using Catmull-Rom spline coefficients
 float CubicInterpolateOptimized(float p0, float p1, float p2, float p3, float t)
@@ -24,43 +25,45 @@ void InterpolateHeightmap(uint3 id : SV_DispatchThreadID)
     // Skip out-of-bounds threads
     if (x >= resolution || y >= resolution) return;
 
-    // Copy precomputed values for multiples of 4
-    if ((x % 4 == 0) && (y % 4 == 0))
+    // Copy precomputed values for multiples of terrainStep
+    if ((x % terrainStep == 0) && (y % terrainStep == 0))
     {
         targetHeightmap[y * resolution + x] = sourceHeightmap[y * resolution + x];
         return;
     }
 
     // Identify the nearest valid indices for interpolation
-    int x0 = max((x / 4) * 4, 0);                  // Nearest multiple of 4 to the left
-    int x1 = min(x0 + 4, resolution - 1);          // Nearest multiple of 4 to the right
-    int y0 = max((y / 4) * 4, 0);                  // Nearest multiple of 4 above
-    int y1 = min(y0 + 4, resolution - 1);          // Nearest multiple of 4 below
+    int x0 = max((x / terrainStep) * terrainStep, 0);                  // Nearest multiple of 4 to the left
+    int x1 = min(x0 + terrainStep, resolution - 1);          // Nearest multiple of 4 to the right
+    int y0 = max((y / terrainStep) * terrainStep, 0);                  // Nearest multiple of 4 above
+    int y1 = min(y0 + terrainStep, resolution - 1);          // Nearest multiple of 4 below
 
-    if (mode == 0)
+    if (mode == 0) // Optimized bilinear interpolation
     {
-        // Bilinear interpolation
-        float tx = x1 == x0 ? 0.0 : float(x - x0) / float(x1 - x0); // Horizontal weight
-        float ty = y1 == y0 ? 0.0 : float(y - y0) / float(y1 - y0); // Vertical weight
+        // Prevent division by zero for edge cases
+        float tx = (x1 == x0) ? 0.0 : float(x - x0) / float(x1 - x0);
+        float ty = (y1 == y0) ? 0.0 : float(y - y0) / float(y1 - y0);
 
-        float c00 = sourceHeightmap[y0 * resolution + x0]; // Top-left
-        float c10 = sourceHeightmap[y0 * resolution + x1]; // Top-right
-        float c01 = sourceHeightmap[y1 * resolution + x0]; // Bottom-left
-        float c11 = sourceHeightmap[y1 * resolution + x1]; // Bottom-right
+        // Fetch the four nearest precomputed values with boundary checks
+        float c00 = (x0 >= 0 && y0 >= 0) ? sourceHeightmap[y0 * resolution + x0] : 0.0;
+        float c10 = (x1 < resolution && y0 >= 0) ? sourceHeightmap[y0 * resolution + x1] : 0.0;
+        float c01 = (x0 >= 0 && y1 < resolution) ? sourceHeightmap[y1 * resolution + x0] : 0.0;
+        float c11 = (x1 < resolution && y1 < resolution) ? sourceHeightmap[y1 * resolution + x1] : 0.0;
 
-        targetHeightmap[y * resolution + x] = lerp(
-            lerp(c00, c10, tx), // Horizontal interpolation (top row)
-            lerp(c01, c11, tx), // Horizontal interpolation (bottom row)
-            ty                  // Vertical interpolation
-        );
+        // Perform bilinear interpolation
+        targetHeightmap[y * resolution + x] =
+            c00 * (1.0 - tx) * (1.0 - ty) +
+            c10 * tx * (1.0 - ty) +
+            c01 * (1.0 - tx) * ty +
+            c11 * tx * ty;
     }
     else if (mode == 1)
     {
         // Bicubic interpolation
-        int xNeg = max(x0 - 4, 0);
-        int xPos = min(x1 + 4, resolution - 1);
-        int yNeg = max(y0 - 4, 0);
-        int yPos = min(y1 + 4, resolution - 1);
+        int xNeg = max(x0 - terrainStep, 0);
+        int xPos = min(x1 + terrainStep, resolution - 1);
+        int yNeg = max(y0 - terrainStep, 0);
+        int yPos = min(y1 + terrainStep, resolution - 1);
 
         float tx = x1 == x0 ? 0.0 : float(x - x0) / float(x1 - x0); // Horizontal weight
         float ty = y1 == y0 ? 0.0 : float(y - y0) / float(y1 - y0); // Vertical weight

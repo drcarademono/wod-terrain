@@ -2,7 +2,7 @@
 #pragma kernel TilemapComputer
 
 float2 terrainPosition, terrainSize, locationPosition, locationSize, worldSize;
-int heightmapResolution, locationCount;
+int heightmapResolution, locationCount, terrainStep;
 float4 locationPositions[1089], locationSizes[1089];
 RWStructuredBuffer<float> heightmapBuffer;
 RWStructuredBuffer<float> rawNoise;
@@ -551,10 +551,10 @@ void HeightmapComputation(int3 id, int i) {
 
     // Compute heights for:
     // - First indices (x == 0 || y == 0)
-    // - Multiples of 4
+    // - Multiples of terrainStep;
     // - Final indices (x == heightmapResolution || y == heightmapResolution)
-    if (!((id.x % 4 == 0 || id.x == 0 || id.x == heightmapResolution) &&
-          (id.y % 4 == 0 || id.y == 0 || id.y == heightmapResolution))) {
+    if (!((id.x % terrainStep == 0 || id.x == 0 || id.x == heightmapResolution) &&
+          (id.y % terrainStep == 0 || id.y == 0 || id.y == heightmapResolution))) {
         // Skip computation for non-matching indices
         rawNoise[rnIndex] = 0.0;
 

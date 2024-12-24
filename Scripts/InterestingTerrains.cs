@@ -30,6 +30,8 @@ namespace Monobelisk
         public static ComputeShader mainHeightComputer;
         public static ComputeShader interpolateHeightmapShader;
 
+        public static int terrainStep = 4;
+
         #region Invoke
         [Invoke(StateManager.StateTypes.Start, 0)]
         public static void Init(InitParams initParams)

@@ -16,7 +16,7 @@ namespace Monobelisk
         const byte stone = 3;
 
         public enum InterpolationMode { Bilinear, Bicubic }
-        public static InterpolationMode CurrentInterpolationMode = InterpolationMode.Bicubic;
+        public static InterpolationMode CurrentInterpolationMode = InterpolationMode.Bilinear;
 
         /// <summary>
         /// Creates and inits a collection of ComputeBuffers for use with the Interesting Terrains terrain sampler.
@@ -96,7 +96,20 @@ namespace Monobelisk
             int sourceSize = (int)Mathf.Sqrt(source.Length); // e.g., 33 if heightmapResolution is 32
             int targetSize = (int)Mathf.Sqrt(target.Length); // e.g., 129 if heightmapResolution is 128
 
-            Debug.Log($"CopyToNative using Compute Shader. Source size: {sourceSize}x{sourceSize}, Target size: {targetSize}x{targetSize}");
+            Debug.Log($"CopyToNative called. Source size: {sourceSize}x{sourceSize}, Target size: {targetSize}x{targetSize}");
+
+            // Check if terrainStep is 1
+            if (InterestingTerrains.terrainStep == 1)
+            {
+                Debug.Log("TerrainStep is 0. Skipping interpolation and directly copying source to target.");
+                // Directly copy the source to the target (assuming source and target have the same resolution)
+                for (int i = 0; i < target.Length; i++)
+                {
+                    target[i] = source[i];
+                }
+                Debug.Log("Direct copy completed successfully.");
+                return;
+            }
 
             // Ensure the compute shader is loaded
             ComputeShader computeShader = InterestingTerrains.interpolateHeightmapShader;
@@ -129,7 +142,7 @@ namespace Monobelisk
             computeShader.SetInt("sourceSize", sourceSize);
             computeShader.SetInt("targetSize", targetSize);
             computeShader.SetInt("mode", CurrentInterpolationMode == InterpolationMode.Bilinear ? 0 : 1);
-
+            computeShader.SetInt("terrainStep", InterestingTerrains.terrainStep);
 
             // Dispatch shader
             int threadGroupSize = 8;

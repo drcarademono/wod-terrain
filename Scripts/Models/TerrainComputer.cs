@@ -179,6 +179,8 @@ namespace Monobelisk
             cs.SetBuffer(k, "locationHeightData", locationHeightData);
             cs.SetVector("worldSize", Utility.GetWorldVertexSize());
 
+            cs.SetInt("terrainStep", InterestingTerrains.terrainStep);
+
             var rd = Compatibility.BasicRoadsUtils.GetRoadData(mapData.mapPixelX, mapData.mapPixelY);
             cs.SetVectorArray("NW_NE_SW_SE", rd.NW_NE_SW_SE);
             cs.SetVectorArray("N_E_S_W", rd.N_E_S_W);
