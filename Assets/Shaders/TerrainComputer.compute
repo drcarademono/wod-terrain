@@ -300,16 +300,21 @@ float LocationWeight(float2 pos, float portHeight, out float basemapHeight, out 
         float2 uv = saturate(locCenter / (terrainSize * float2(TERRAIN_X, TERRAIN_Y))) + uvOffset;
         float baseHeight = mapPixelHeights.SampleLevel(dm_linear_clamp_sampler, uv, 0).r;
 
+        float portLerp = saturate(portHeight * 10);
+
         float fadeDist = 64.0; //slope of terrain near locations. Default: 32
 
         float2 nearestEdgeNarrow;
 
         float2 nearestEdge;
-        if (portHeight > 0.0) {
-            nearestEdge = NearestRectangularEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
-        } else {
-            nearestEdge = NearestRadialEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
-        }
+        float2 nearestEdgeRect;
+        float2 nearestEdgeRad;
+
+        nearestEdgeRect = NearestRectangularEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
+
+        nearestEdgeRad = NearestRadialEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
+
+    	nearestEdge = lerp(nearestEdgeRad, nearestEdgeRect, portLerp);
 
         PerlinParams noiseParams = PerlinDune(nearestEdgeNarrow);
         noiseParams.amplitude = 1.0;
@@ -385,22 +390,21 @@ float PortLocationWeight(float2 pos, float portHeight, out float basemapHeight, 
         float2 uv = saturate(locCenter / (terrainSize * float2(TERRAIN_X, TERRAIN_Y))) + uvOffset;
         float baseHeight = mapPixelHeights.SampleLevel(dm_linear_clamp_sampler, uv, 0).r;
 
-        float fadeDist;
+        float portLerp = saturate(portHeight * 10);
 
-        //if (portHeight > 0.0) {
-            fadeDist = 3.0; //slope of terrain near locations. Default: 32
-        //} else {
-        //    fadeDist = 64.0; //slope of terrain near locations. Default: 32
-        //}
+        float fadeDist = lerp(64.0, 3.0, portLerp);
 
         float2 nearestEdgeNarrow;
 
         float2 nearestEdge;
-        if (portHeight > 0.0) {
-            nearestEdge = NearestRectangularEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
-        } else {
-            nearestEdge = NearestRadialEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
-        }
+        float2 nearestEdgeRect;
+        float2 nearestEdgeRad;
+
+        nearestEdgeRect = NearestRectangularEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
+
+        nearestEdgeRad = NearestRadialEdgePoint(pos, locPos, locSize, nearestEdgeNarrow);
+
+    	nearestEdge = lerp(nearestEdgeRad, nearestEdgeRect, portLerp);
 
         PerlinParams noiseParams = PerlinDune(nearestEdgeNarrow);
         noiseParams.amplitude = 1.0;
@@ -508,15 +512,10 @@ float GetHeightSample(float2 id, out float mountainPart) {
 
     float portLocationWeight;
 
-    if (portHeight > 0.0) { // dock location setting
         portLocationWeight = PortLocationWeight(pos, portHeight, locationHeight, bumpWeight);
-    }
 
-    //if (portHeight > 0.0) { // dock location setting
     float portLocationHeight = 0.021; // 0.0201 is lowest to still have grass and sand
-    //} else {
     float regLocationHeight = max(locationHeight + (BASEHEIGHT_MIN / 10000) + (altHeight * 0.1), 0.021); //carademono's kludge to get rid of craters, don't ask me why this works
-    //}
 
 	if ( seaHeight > 0.0 ) { // Uses blue PortMap channel for sea level locations
 		locationHeight = 0;
@@ -524,13 +523,11 @@ float GetHeightSample(float2 id, out float mountainPart) {
     	locationHeight = lerp(regLocationHeight, portLocationHeight, portLerp);
 	}
 
-    if ( portHeight > 0.0 && baseHeight <= 0.021 ) {
+    if ( baseHeight <= 0.021 ) {
         //baseHeight = lerp(baseHeight, locationHeight, portLocationWeight);
         float baseHeight1 = lerp(baseHeight, locationHeight, locationWeight);
         float baseHeight2 = lerp(baseHeight, locationHeight, portLocationWeight);
         baseHeight = lerp(baseHeight1, baseHeight2, portLerp);
-        //baseHeight = portHeight / 10;
-        //baseHeight = 0.0;
     } else {
         baseHeight = lerp(baseHeight, locationHeight, locationWeight);
     }
