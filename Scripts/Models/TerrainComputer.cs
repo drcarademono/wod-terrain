@@ -70,7 +70,7 @@ namespace Monobelisk
 
             cs.SetFloat("newHeight", Constants.TERRAIN_HEIGHT);
             cs.SetFloat("maxTerrainHeight", 2308.5f);
-            cs.SetFloat("scaledOceanElevation", 15f);
+            cs.SetFloat("scaledOceanElevation", 27.2f);
             cs.SetFloat("baseHeightScale", 8f);
             cs.SetFloat("noiseMapScale", 4f);
             cs.SetFloat("extraNoiseScale", 10f);
@@ -313,7 +313,7 @@ namespace Monobelisk
             cs.SetFloat("baseHeightScale", 8f);
             cs.SetFloat("noiseMapScale", 4f);
             cs.SetFloat("extraNoiseScale", 10f);
-            cs.SetFloat("scaledOceanElevation", 15f);
+            cs.SetFloat("scaledOceanElevation", 27.2f);
         }
 
         static Rect ExpandInEachDirection(Rect src, int amount)
