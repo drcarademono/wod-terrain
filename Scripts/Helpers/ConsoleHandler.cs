@@ -31,19 +31,29 @@ namespace Monobelisk
                 if (!isSpeedyMode || args.Length != 0)
                 {
                     isSpeedyMode = true;
-                    Wenzil.Console.Console.ExecuteCommand("set_walkspeed", ((int)(50 * mul)).ToString());
-                    Wenzil.Console.Console.ExecuteCommand("set_runspeed", ((int)(150 * mul)).ToString());
-                    Wenzil.Console.Console.ExecuteCommand("set_jump", "80");
+                    Wenzil.Console.Console.ExecuteCommand("set_walkspeed", ((int)(5 * mul)).ToString());
+                    Wenzil.Console.Console.ExecuteCommand("set_runspeed", ((int)(20 * mul)).ToString());
+                    Wenzil.Console.Console.ExecuteCommand("set_jump", "100");
                     GameManager.Instance.PlayerEntity.GodMode = true;
+                    GameManager.Instance.AcrobatMotor.airControl = true;
 
                     return "Speedy mode enabled with multiplier " + mul.ToString("0.00") + ". God mode enabled.";
                 }
 
                 isSpeedyMode = false;
-                Wenzil.Console.Console.ExecuteCommand("set_walkspeed", "-1");
-                Wenzil.Console.Console.ExecuteCommand("set_runspeed", "-1");
+
+                // Access PlayerSpeedChanger through GameManager.Instance.SpeedChanger
+                PlayerSpeedChanger playerSpeedChanger = GameManager.Instance.SpeedChanger;
+                if (playerSpeedChanger == null)
+                {
+                    Debug.LogError("PlayerSpeedChanger is not found.");
+                    return "Error: PlayerSpeedChanger is not found.";
+                }
+
+                playerSpeedChanger.ResetSpeed(true, true);
                 Wenzil.Console.Console.ExecuteCommand("set_jump", "8");
                 GameManager.Instance.PlayerEntity.GodMode = false;
+                GameManager.Instance.AcrobatMotor.airControl = false;
 
                 return "Speedy mode disabled. God mode disabled.";
             });
